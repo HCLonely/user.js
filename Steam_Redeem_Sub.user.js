@@ -9,7 +9,7 @@
 // @require      https://cdn.bootcss.com/sweetalert/2.1.2/sweetalert.min.js
 // @supportURL   https://blog.hclonely.com/posts/578f9be7/
 // @homepage     https://blog.hclonely.com/posts/578f9be7/
-// @updateURL    https://js.hclonely.com/Steam%20Redeem%20Sub.user.js
+// @updateURL    https://github.com/HCLonely/user.js/raw/master/Steam_Redeem_Sub.user.js
 // @grant        GM_registerMenuCommand
 // @run-at       document-end
 // ==/UserScript==
@@ -23,9 +23,7 @@
     if(/https?:\/\/steamdb\.info\/freepackages\//.test(url)){//点击自动跳转到激活页面
         let activateConsole = function(e) {
             let sub=[];
-            $("#freepackages span:visible").map(function(){
-                sub.push($(this).attr("data-subid"));
-            });
+            $("#freepackages span:visible").map(()=>{sub.push($(this).attr("data-subid"))});
             let freePackages=sub.join(",");
             window.open("https://store.steampowered.com/account/licenses/?sub=" + freePackages,"_self");
         };
@@ -36,7 +34,6 @@
                 clearInterval(fp);
             }
         },1000);
-        //GM_registerMenuCommand
     }else{
         function redeemSub(e){
             let subText=e||document.getElementById("gameSub").value;
@@ -87,19 +84,13 @@
                         let thisC=data.match(/id\=\"usercountrycurrency\"[\w\W]*?value=\".*?\"/gim)[0].match(/value=\".*?\"/gim)[0].replace(/value=\"|\"/g,"");
                         let div=data.match(/\<div class=\"currency_change_options\"\>[\w\W]*?\<p/gim)[0].replace(/[\s]*?\<p/gim,"")+"</div>";
                         jQuery("body").append(`<div id="ccDiv" style="position:fixed;margin:auto;z-index: 1000;width:629px;height:228px;top:20px;bottom:20px;left:20px;right:20px;background-color:#232b34"><div class="newmodal_header_border"><div class="newmodal_header"><div class="newmodal_close"></div><div id="nowCountry" class="ellipsis" data-country="${thisC}" style="font-size:20px;">转换商店和钱包&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;当前国家/地区：${c}</div></div></div><div style="padding:20px">${div}</div></div>`);
-                        jQuery(".currency_change_option").click(function(){
-                            changeCountry(jQuery(this).attr("data-country"));
-                        });
-                        jQuery(".newmodal_close").click(function(){
-                            jQuery("#ccDiv").remove();
-                        });
+                        jQuery(".currency_change_option").click(()=>{changeCountry(jQuery(this).attr("data-country"))});
+                        jQuery(".newmodal_close").click(()=>{jQuery("#ccDiv").remove()});
                     }else{
                         swal("需要挂相应地区的梯子！","","warning");
                     }
                 },
-                error:()=>{
-                    swal("获取当前国家/地区失败！","","error");
-                }
+                error:()=>{swal("获取当前国家/地区失败！","","error");}
             });
         }
         function changeCountry(country){
@@ -119,21 +110,11 @@
                             let thisC=data.match(/id\=\"usercountrycurrency\"[\w\W]*?value=\".*?\"/gim)[0].match(/value=\".*?\"/gim)[0].replace(/value=\"|\"/g,"");
                             let div=data.match(/\<div class=\"currency_change_options\"\>[\w\W]*?\<p/gim)[0].replace(/[\s]*?\<p/gim,"")+"</div>";
                             jQuery("#ccDiv").html(`<div class="newmodal_header_border"><div class="newmodal_header"><div class="newmodal_close"></div><div id="nowCountry" class="ellipsis" data-country="${thisC}" style="font-size:20px;">转换商店和钱包&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;当前国家/地区：${c}</div></div></div><div style="padding:20px">${div}</div>`);
-                            jQuery(".currency_change_option").click(function(){
-                                changeCountry(jQuery(this).attr("data-country"));
-                            });
-                            jQuery(".newmodal_close").click(function(){
-                                jQuery("#ccDiv").remove();
-                            });
-                            if(thisC===country){
-                                swal("更换成功！","","success");
-                            }else{
-                                swal("更换失败！","","error");
-                            }
+                            jQuery(".currency_change_option").click(()=>{changeCountry(jQuery(this).attr("data-country"))});
+                            jQuery(".newmodal_close").click(()=>{jQuery("#ccDiv").remove()});
+                            thisC===country?swal("更换成功！","","success"):swal("更换失败！","","error");
                         },
-                        error:()=>{
-                            swal("获取当前国家/地区失败！","","error");
-                        }
+                        error:()=>{swal("获取当前国家/地区失败！","","error");}
                     });
                 }
             });
@@ -149,8 +130,6 @@
                                               ' id="changeCountry"><span>更改国家/地区</span></a>');
         jQuery('#buttonSUB').click(()=>{redeemSub()});
         jQuery('#changeCountry').click(cc);
-        if (url.includes("sub=")){
-            setTimeout(()=>{redeemSub(url)},2000);
-        }
+        if (url.includes("sub=")) setTimeout(()=>{redeemSub(url)},2000);
     }
 })();
