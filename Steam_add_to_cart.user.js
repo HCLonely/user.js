@@ -8,7 +8,7 @@
 // @require      https://cdn.bootcss.com/sweetalert/2.1.2/sweetalert.min.js
 // @supportURL   https://blog.hclonely.com/posts/578f9be7/
 // @homepage     https://blog.hclonely.com/posts/578f9be7/
-// @updateURL    https://js.hclonely.com/Steam%E4%BE%BF%E6%8D%B7%E5%8A%A0%E5%85%A5%E8%B4%AD%E7%89%A9%E8%BD%A6.user.js
+// @updateURL    https://github.com/HCLonely/user.js/raw/master/Steam_add_to_cart.user.js
 // @grant        GM_addStyle
 // @run-at       document-end
 // ==/UserScript==
@@ -99,17 +99,19 @@
                 }catch(e){
                     swal({
                         title: "Steam便捷加入购物车",
-                        text: "脚本出错： \n"+e,
+                        text: "脚本出错！",
                         icon: "error",
                     });
+                    console.error(e);
                 }
             },
-            error:()=>{
+            error:e=>{
                 swal({
                     title: "Steam便捷加入购物车",
-                    text: "获取游戏信息失败！ \n"+e,
+                    text: "获取游戏信息失败！",
                     icon: "error",
                 });
+                console.error(e);
             },
         });
     }
@@ -127,14 +129,6 @@
         if($('.ds_options').parent().not(':contains("添加至购物车")').length>0) addBtn();
     },1500);
 
-    GM_addStyle(`
-.hclonely{
-position: absolute;
-right: 0;
-top: 25px;
-z-index: 999999;
-padding: 0 !important;
-}
-`);
+    GM_addStyle(`.hclonely{position: absolute;right: 0;top: 25px;z-index: 999999;padding: 0 !important;}`);
 
 })(jQuery);
