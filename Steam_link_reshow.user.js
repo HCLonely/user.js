@@ -8,7 +8,7 @@
 // @match        *://store.steampowered.com/*
 // @supportURL   https://blog.hclonely.com/posts/578f9be7/
 // @homepage     https://blog.hclonely.com/posts/578f9be7/
-// @updateURL    https://js.hclonely.com/steam%E9%93%BE%E6%8E%A5%E5%B7%B2%E5%88%A0%E9%99%A4%EF%BC%9F.user.js
+// @updateURL    https://github.com/HCLonely/user.js/raw/master/Steam_link_reshow.user.js
 // ==/UserScript==
 
 (function() {
