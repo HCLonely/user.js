@@ -9,7 +9,7 @@
 // @include      *://steamcommunity.com/*
 // @supportURL   https://blog.hclonely.com/posts/6a0923b1/
 // @homepage     https://blog.hclonely.com/posts/6a0923b1/
-// @updateURL    https://blog.hclonely.com/forums/topic/234
+// @updateURL    https://github.com/HCLonely/user.js/raw/master/Steam_remove_all.user.js
 // @require      https://cdn.bootcss.com/sweetalert/2.1.2/sweetalert.min.js
 // @grant        GM_xmlhttpRequest
 // @grant        GM_addStyle
@@ -58,7 +58,7 @@
 <div id="output">
     <div id="setting"></div>
     <div id="info"></div>
-    <\/div>
+    </div>
         <h4 class="checkbox"><input id="selectAll" type="checkbox">全选  <input id="reverse" type="checkbox">反选</p>
 <a href="javascript:void(0)" style="position:absolute;top:5px;right:5px;font-size:24px;cursor:pointer" onClick="document.getElementById('remove').style.display='none'">X</a>
 `;
@@ -138,13 +138,8 @@
         });
     }
 
-    let curators=[];
-    let unfC=0;
-    let unfG=0;
-    let remG=0;
-    let page=1;
-    let steam64ID='';
-    let userName=$('a[data-miniprofile='+g_AccountID+']').text().trim();
+    let [curators,unfC,unfG,remG,page,steam64ID,userName]=[[],0,0,0,1,'',''];
+    userName=$('a[data-miniprofile='+g_AccountID+']').text().trim();
     let xhr = new XMLHttpRequest();
     xhr.open("GET", "https://store.steampowered.com/wishlist/id/"+userName);
     xhr.setRequestHeader('Content-Type','application/x-www-form-urlencoded; charset=UTF-8');
