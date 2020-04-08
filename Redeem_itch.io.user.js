@@ -1,10 +1,9 @@
 // ==UserScript==
 // @name         Redeem itch.io
-// @namespace    http://tampermonkey.net/
-// @version      1.1.4
+// @namespace    Redeem-itch.io
+// @version      1.1.5
 // @description  自动激活itch.io key链接和免费itch.io游戏
 // @author       HCLonely
-// @include      *://gamecode.win/giveaway/*
 // @include      *://*itch.io/*
 // @include      *://keylol.com/*
 // @supportURL   https://blog.hclonely.com/posts/578f9be7/
@@ -26,7 +25,8 @@
 
     function closePage(){
         window.close();
-        if (userAgent.indexOf("Firefox") != -1 || userAgent.indexOf("Chrome") !=-1) {
+        /*
+        if (navigator.userAgent.includes("Firefox") || navigator.userAgent.includes("Chrome")) {
             window.location.href="about:blank";
             window.close();
         } else {
@@ -34,39 +34,19 @@
             window.open("", "_self");
             window.close();
         }
-    }
-    /***************************检测itch.io key链接***************************/
-    if (url.includes("gamecode.win")){
-        $("div.panel-body").append('<div class="col-md-6">' + '<h4 class="text-center">' +
-                                   '<button id="redeemItch" style="width: 160px;" class="btn btn-danger btn-sm">' +
-                                   '<i class="fa fa-gamepad">' + '</i>' + '激活' + '</button></h4></div>');
-        var redeemurl=document.getElementsByClassName("text-center");
-        for(var c=0;c<redeemurl.length;c++){
-            var redeemurl1=redeemurl[c].innerHTML;
-            if (/https:\/\/[\w]{1,}\.itch\.io\/[\w]{1,}(-[\w]{1,}){0,}\/download\/[\d\w]{1,}(-[\d\w]{1,}){1,}/i.test(redeemurl1)){
-                if (confirm("检测到itch.io激活链接,是否前往激活？")) window.open(redeemurl1, "_blank");
-                break;
-            }
-            if (/No more keys left sorry \:\([ ]{0,}/.test(redeemurl1)){
-                if (confirm("没有key了，是否关闭？")) closePage();
-                break;
-            }
-        }
-        jQuery('#redeemItch').click(function(){
-            window.open(redeemurl1,"_blank");
-        });
+        */
     }
 
     /***************************自动激活itch.io游戏链接***************************/
     if (/^https?:\/\/[\w\W]{1,}\.itch\.io\/[\w]{1,}(-[\w]{1,}){0,}\/download\/[\w\W]{0,}/i.test(url)){
         $("button.button").map(function(i,e){
-            if(/(link)|(claim)/gim.test($(e).text())) e.click();
+            if(/link|claim|链接至/gim.test($(e).text())) e.click();
         });
-        if((/This page is linked/gim.test($("div.inner_column").text())||$("a.button.download_btn[data-upload_id]").length>0)&&closeWindow==1) closePage();
+        if((/This page is linked|此页面已链接到帐户/gim.test($("div.inner_column").text())||$("a.button.download_btn[data-upload_id]").length>0)&&closeWindow==1) closePage();
     }
 
     /***********************领取免费itch.io游戏***************************/
-    if(/^https?:\/\/.*?itch\.io\/.*?\/purchase(\?.*?)?$/.test(url)&&/No thanks\, just take me to the downloads/i.test($("a.direct_download_btn").text())){
+    if(/^https?:\/\/.*?itch\.io\/.*?\/purchase(\?.*?)?$/.test(url)&&/No thanks\, just take me to the downloads|不用了，请带我去下载页面/i.test($("a.direct_download_btn").text())){
         $("a.direct_download_btn")[0].click();
     }else if($(".purchase_banner_inner").length===0&&(/0\.00/gim.test($(".button_message").eq(0).find(".dollars[itemprop]").text())||/Name your own price/gim.test($(".button_message").eq(0).find(".buy_message").text()))){
         window.open(url+"/purchase","_self")
@@ -158,7 +138,7 @@
                     log('有的页面脚本不能自动关闭，请手动关闭！')
                     resolve()
                 }, 15000)
-                GM_openInTab(url + '/purchase', { active: true, setParent: true }).onclosed = () => {
+                let t=GM_openInTab(url + '/purchase', { active: true, setParent: true }).onclosed = () => {
                     log('已关闭购买页面，如果是自动关闭的说明游戏已领取！')
                     clearTimeout(timer)
                     resolve()
