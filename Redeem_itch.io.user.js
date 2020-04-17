@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Redeem itch.io
 // @namespace    Redeem-itch.io
-// @version      1.1.5
+// @version      1.1.6
 // @description  自动激活itch.io key链接和免费itch.io游戏
 // @author       HCLonely
 // @include      *://*itch.io/*
