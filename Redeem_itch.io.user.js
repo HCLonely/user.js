@@ -6,6 +6,8 @@
 // @author       HCLonely
 // @include      *://*itch.io/*
 // @include      *://keylol.com/*
+// @include      *://www.steamgifts.com/discussions/*
+// @include      *://www.reddit.com/r/*
 // @supportURL   https://blog.hclonely.com/posts/578f9be7/
 // @homepage     https://blog.hclonely.com/posts/578f9be7/
 // @require      https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.slim.min.js
@@ -63,7 +65,7 @@
             }
         }
     }
-    if(url.includes('keylol.com/')){
+    if(['keylol.com', 'www.steamgifts.com', 'www.reddit.com'].includes(window.location.hostname)){
         function log(e,c){
             console.log('%c'+e, 'color:'+c)
         }
