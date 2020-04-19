@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Redeem itch.io
 // @namespace    Redeem-itch.io
-// @version      1.1.6
+// @version      1.1.7
 // @description  自动激活itch.io key链接和免费itch.io游戏
 // @author       HCLonely
 // @include      *://*itch.io/*
@@ -42,7 +42,7 @@
     /***************************自动激活itch.io游戏链接***************************/
     if (/^https?:\/\/[\w\W]{1,}\.itch\.io\/[\w]{1,}(-[\w]{1,}){0,}\/download\/[\w\W]{0,}/i.test(url)){
         $("button.button").map(function(i,e){
-            if(/link|claim|链接至/gim.test($(e).text())) e.click();
+            if(/link|claim|链接/gim.test($(e).text())) e.click();
         });
         if((/This page is linked|此页面已链接到帐户/gim.test($("div.inner_column").text())||$("a.button.download_btn[data-upload_id]").length>0)&&closeWindow==1) closePage();
     }
