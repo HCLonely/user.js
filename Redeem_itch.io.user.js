@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Redeem itch.io
 // @namespace    Redeem-itch.io
-// @version      1.1.7
+// @version      1.1.8
 // @description  自动激活itch.io key链接和免费itch.io游戏
 // @author       HCLonely
 // @include      *://*itch.io/*
@@ -50,7 +50,7 @@
     /***********************领取免费itch.io游戏***************************/
     if(/^https?:\/\/.*?itch\.io\/.*?\/purchase(\?.*?)?$/.test(url)&&/No thanks\, just take me to the downloads|不用了，请带我去下载页面/i.test($("a.direct_download_btn").text())){
         $("a.direct_download_btn")[0].click();
-    }else if($(".purchase_banner_inner").length===0&&(/0\.00/gim.test($(".button_message").eq(0).find(".dollars[itemprop]").text())||/Name your own price/gim.test($(".button_message").eq(0).find(".buy_message").text()))){
+    }else if($(".purchase_banner_inner").length===0&&(/0\.00/gim.test($(".button_message").eq(0).find(".dollars[itemprop]").text())||/自己出价|Name your own price/gim.test($(".button_message").eq(0).find(".buy_message").text()))){
         window.open(url+"/purchase","_self")
     }
 
@@ -159,7 +159,7 @@
                     method: 'get',
                     onload: async data => {
                         if (data.status === 200) {
-                            if (/0\.00/gim.test($(data.responseText).find(".button_message:first .dollars[itemprop]").text()) || /Name your own price/gim.test($(data.responseText).find(".button_message:first .buy_message").text())) {
+                            if (/0\.00/gim.test($(data.responseText).find(".button_message:first .dollars[itemprop]").text()) || /自己出价|Name your own price/gim.test($(data.responseText).find(".button_message:first .buy_message").text())) {
                                 let csrf_token=$(data.responseText).find('[name="csrf_token"]').val()
                                 await download(url, csrf_token)
                                 resolve()
