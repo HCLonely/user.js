@@ -1,0 +1,22 @@
+{
+  "name": "userjs",
+  "version": "1.0.0",
+  "description": "初学JS时搞的一些Tampermonkey脚本",
+  "main": "index.js",
+  "scripts": {
+    "test": "standard Alienwarearena_Daily_Quest_Helper.user.js --fix"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HCLonely/user.js.git"
+  },
+  "author": "HCLonely",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/HCLonely/user.js/issues"
+  },
+  "homepage": "https://github.com/HCLonely/user.js#readme",
+  "devDependencies": {
+    "standard": "^14.3.4"
+  }
+}
