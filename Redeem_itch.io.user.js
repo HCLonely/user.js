@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Redeem itch.io
 // @namespace    Redeem-itch.io
-// @version      1.1.8
+// @version      1.1.9
 // @description  自动激活itch.io key链接和免费itch.io游戏
 // @author       HCLonely
 // @include      *://*itch.io/*
@@ -226,7 +226,7 @@
             })
         }
         GM_registerMenuCommand('提取所有链接',async ()=>{
-            for(let e of $('a[href*="itch.io"]')){
+            for (let e of $('a[href*="itch.io"]:not(".itch-io-game-link-owned")')){
                 await redeemGame(e.href)
             }
         });
