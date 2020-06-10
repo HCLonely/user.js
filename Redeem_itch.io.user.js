@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Redeem itch.io
 // @namespace    Redeem-itch.io
-// @version      1.1.9
+// @version      1.1.10
 // @description  自动激活itch.io key链接和免费itch.io游戏
 // @author       HCLonely
 // @include      *://*itch.io/*
@@ -58,6 +58,7 @@
     if(/https?:\/\/itch.io\/s\/[\d]{1,}\/[\w\W]{1,}/.test(url)){
         let gameLink=document.getElementsByClassName("thumb_link game_link");
         for(var x=0,y=gameLink.length;x<y;x++){
+            if (gameLink[x].className.includes("itch-io-game-link-owned")) continue
             if(x!==y-1){
                 window.open(gameLink[x].href+"/purchase","_blank");
             }else{
