@@ -4,7 +4,8 @@
   "description": "初学JS时搞的一些Tampermonkey脚本",
   "main": "index.js",
   "scripts": {
-    "test": "standard Alienwarearena_Daily_Quest_Helper.user.js --fix"
+    "test": "standard Alienwarearena_Daily_Quest_Helper.user.js --fix",
+    "itch": "standard Redeem_itch.io.user.js --fix"
   },
   "repository": {
     "type": "git",
@@ -18,5 +19,15 @@
   "homepage": "https://github.com/HCLonely/user.js#readme",
   "devDependencies": {
     "standard": "^14.3.4"
+  },
+  "standard":{
+    "global":[
+      "$",
+      "GM_xmlhttpRequest",
+      "GM_registerMenuCommand",
+      "GM_openInTab",
+      "unsafeWindow",
+      "Swal"
+    ]
   }
 }
