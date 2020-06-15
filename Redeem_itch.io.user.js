@@ -1,9 +1,10 @@
 // ==UserScript==
 // @name         Redeem itch.io
 // @namespace    Redeem-itch.io
-// @version      1.2.0
+// @version      1.2.1
 // @description  自动激活itch.io key链接和免费itch.io游戏
 // @author       HCLonely
+// @iconURL      https://itch.io/favicon.ico
 // @include      *://*itch.io/*
 // @include      *://keylol.com/*
 // @include      *://www.steamgifts.com/discussions/*
@@ -22,10 +23,13 @@
 // @connect      *.itch.io
 // ==/UserScript==
 
+/* global checkItchGame */
+/* eslint-disable camelcase */
+
 (function () {
   'use strict'
 
-  const closeWindow = true// 激活完成后自动关闭页面，改为'false'则为不自动关闭
+  const closeWindow = true // 激活完成后自动关闭页面，改为'false'则为不自动关闭
   const url = window.location.href
 
   /** *************************自动激活itch.io游戏链接***************************/
@@ -45,15 +49,16 @@
 
   /** **********************限时免费游戏包*****************************/
   if (/https?:\/\/itch.io\/s\/[\d]{1,}\/[\w\W]{1,}/.test(url)) {
-    const gameLink = document.getElementsByClassName('thumb_link game_link')
-    for (var x = 0, y = gameLink.length; x < y; x++) {
-      if (x !== y - 1) {
-        window.open(gameLink[x].href + '/purchase', '_blank')
-      } else {
-        window.open(gameLink[x].href + '/purchase', '_self')
+    $('.promotion_buy_row .buy_game_btn').after('<button id="redeem-itch-io" class="button" style="font-size:18px;letter-spacing:0.025em;line-height:36px;height:40px;padding:0 20px;margin:0 16px">后台激活</button>')
+    $('#redeem-itch-io').click(async () => {
+      const gameLink = $('.thumb_link.game_link')
+      for (const e of gameLink) {
+        await redeemGame(e)
       }
-    }
+    })
   }
+
+  /** **********************后台激活游戏*****************************/
   if (['keylol.com', 'www.steamgifts.com', 'www.reddit.com'].includes(window.location.hostname)) {
     for (const e of $('a[href*="itch.io"]')) {
       $(e).after(`<a data-itch-href="${$(e).attr('href')}" href="javascript:void(0)" onclick="redeemItchGame(this)" target="_self" style="margin-left:10px !important;">激活</a>`)
