@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name         Redeem itch.io
 // @namespace    Redeem-itch.io
-// @version      1.2.1
+// @version      1.2.2
 // @description  自动激活itch.io key链接和免费itch.io游戏
 // @author       HCLonely
 // @iconURL      https://itch.io/favicon.ico
 // @include      *://*itch.io/*
 // @include      *://keylol.com/*
-// @include      *://www.steamgifts.com/discussions/*
+// @include      *://www.steamgifts.com/discussion/*
 // @include      *://www.reddit.com/r/*
 // @supportURL   https://blog.hclonely.com/posts/578f9be7/
 // @homepage     https://blog.hclonely.com/posts/578f9be7/
@@ -287,13 +287,12 @@
             } else {
               log('激活完成，结果未知！', 'success')
             }
-            resolve()
           } else {
             log('请求失败！', 'error')
             log(data)
-            resolve()
           }
           if (typeof checkItchGame === 'function') checkItchGame()
+          resolve()
         }
       })
     }).then(() => {
