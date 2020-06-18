@@ -23,9 +23,14 @@
   "standard":{
     "global":[
       "$",
+      "jQuery",
       "GM_xmlhttpRequest",
       "GM_registerMenuCommand",
       "GM_openInTab",
+      "GM_addStyle",
+      "GM_setValue",
+      "GM_getValue",
+      "GM_setClipboard",
       "unsafeWindow",
       "Swal"
     ]
