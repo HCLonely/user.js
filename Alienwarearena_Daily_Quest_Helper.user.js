@@ -7,6 +7,7 @@
 // @iconURL      https://www.alienwarearena.com/favicon.ico
 // @supportURL   https://blog.hclonely.com/posts/578f9be7/
 // @homepage     https://blog.hclonely.com/posts/578f9be7/
+// @updateURL    https://github.com/HCLonely/user.js/raw/master/Alienwarearena_Daily_Quest_Helper.user.js
 // @include      https://*.alienwarearena.com/*
 // @grant        GM_addStyle
 // @grant        GM_xmlhttpRequest

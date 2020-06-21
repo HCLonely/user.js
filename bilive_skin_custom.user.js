@@ -16,6 +16,7 @@
 // @require      https://greasyfork.org/scripts/388035-jquery/code/$jQuery.js?version=736625
 // @homepage     https://blog.hclonely.com/posts/578f9be7/
 // @supportURL   https://blog.hclonely.com/posts/578f9be7/
+// @updateURL    https://github.com/HCLonely/user.js/raw/master/bilive_skin_custom.user.js
 // @run-at       document-end
 // @connect      *
 // @compatible   chrome 没有测试其他浏览器的兼容性

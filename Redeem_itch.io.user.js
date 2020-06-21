@@ -14,6 +14,7 @@
 // @require      https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.slim.min.js
 // @require      https://cdn.jsdelivr.net/npm/sweetalert2@9
 // @require      https://cdn.jsdelivr.net/npm/promise-polyfill@8.1.3/dist/polyfill.min.js
+// @updateURL    https://github.com/HCLonely/user.js/raw/master/Redeem_itch.io.user.js
 // @grant        GM_xmlhttpRequest
 // @grant        GM_registerMenuCommand
 // @grant        GM_openInTab
