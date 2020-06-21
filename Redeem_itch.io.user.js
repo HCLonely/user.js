@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Redeem itch.io
 // @namespace    Redeem-itch.io
-// @version      1.2.2
+// @version      1.2.3
 // @description  自动激活itch.io key链接和免费itch.io游戏
 // @author       HCLonely
 // @iconURL      https://itch.io/favicon.ico
@@ -327,7 +327,7 @@
           'Upgrade-Insecure-Requests': 1,
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4164.2 Safari/537.36'
         },
-        data: `csrf_token=${token}`,
+        data: `csrf_token=${encodeURIComponent(token)}`,
         onload: async data => {
           if (data.status === 200 && data.responseText) {
             const html = $(data.responseText)
