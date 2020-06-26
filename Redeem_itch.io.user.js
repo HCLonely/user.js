@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Redeem itch.io
 // @namespace    Redeem-itch.io
-// @version      1.2.3
+// @version      1.2.5
 // @description  自动激活itch.io key链接和免费itch.io游戏
 // @author       HCLonely
 // @iconURL      https://itch.io/favicon.ico
@@ -66,15 +66,23 @@
     }
   }
   GM_registerMenuCommand('提取所有链接', async () => {
+    let gamesLink = []
     for (const e of $('a[href*="itch.io"]:not(".itch-io-game-link-owned")')) {
-      await redeemGame(e)
+      const links = await getUrlLink(e)
+      gamesLink = [...gamesLink, ...links]
     }
+    gamesLink = [...new Set(gamesLink)]
+    for (const e of gamesLink) {
+      await isOwn(e)
+    }
+    log('全部激活完成！', 'success')
   })
   unsafeWindow.redeemItchGame = redeemGame
   function closePage () {
     window.close()
   }
   function log (e, c) {
+    if (typeof e !== 'string') return console.log(e)
     Swal[$('.swal2-container').length > 0 ? 'update' : 'fire']({
       title: e,
       icon: c || 'info'
@@ -98,6 +106,51 @@
     }
     console.log('%c' + e, color)
   }
+
+  async function getUrlLink (e) {
+    let url = ''
+    if ($(e).attr('data-itch-href')) {
+      url = $(e).attr('data-itch-href')
+    } else {
+      if ($(e).hasClass('itch-io-game-link-owned')) return []
+      url = $(e).attr('href')
+    }
+    log('正在处理游戏/优惠包链接: ' + url)
+    if (/https?:\/\/itch.io\/s\/[\d]+\/.+/.test(url)) {
+      log('正在获取优惠包信息...')
+      return await new Promise(resolve => {
+        GM_xmlhttpRequest({
+          url,
+          method: 'get',
+          onload: async data => {
+            if (data.status === 200) {
+              if (data.responseText.includes('not_active_notification')) {
+                log('活动已结束！', 'error')
+                resolve([])
+              } else {
+                const gamesLink = []
+                const games = $(data.responseText).find('.game_grid_widget.promo_game_grid a.thumb_link.game_link')
+                for (const e of games) {
+                  gamesLink.push(e.href.replace(/\/$/, ''))
+                }
+                resolve(gamesLink)
+              }
+            } else {
+              log('请求失败！', 'error')
+              log(data)
+              resolve([])
+            }
+          }
+        })
+      }).then(e => {
+        return e
+      }).catch(() => {
+        return []
+      })
+    } else if (/^https?:\/\/.+?\.itch\.io\/[^/]+?(\/purchase)?$/.test(url)) {
+      return [url.replace('/purchase', '').replace(/\/$/, '')]
+    }
+  }
   async function redeemGame (e) {
     let url = ''
     if ($(e).attr('data-itch-href')) {
@@ -108,7 +161,7 @@
     }
     log('当前游戏/优惠包链接: ' + url)
     if (/https?:\/\/itch.io\/s\/[\d]+\/.+/.test(url)) {
-      log('正在获取游戏信息...')
+      log('正在获取优惠包信息...')
       await new Promise(resolve => {
         GM_xmlhttpRequest({
           url,
