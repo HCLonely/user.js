@@ -24,7 +24,7 @@
 // @connect      *.itch.io
 // ==/UserScript==
 
-/* global checkItchGame */
+/* global checkItchGame,MutationObserver */
 /* eslint-disable camelcase */
 
 (function () {
@@ -70,9 +70,9 @@
       subtree: true
     })
   }
-  function addRedeemBtn() {
+  function addRedeemBtn () {
     for (const e of $('a[href*="itch.io"]:not(".redeem-itch-game")')) {
-      $(e).addClass("redeem-itch-game").after(`<a data-itch-href="${$(e).attr('href')}" href="javascript:void(0)" onclick="redeemItchGame(this)" target="_self" style="margin-left:10px !important;">激活</a>`)
+      $(e).addClass('redeem-itch-game').after(`<a data-itch-href="${$(e).attr('href')}" href="javascript:void(0)" onclick="redeemItchGame(this)" target="_self" style="margin-left:10px !important;">激活</a>`)
     }
   }
   GM_registerMenuCommand('提取所有链接', async () => {
@@ -414,5 +414,4 @@
       return false
     })
   }
-
 })()
