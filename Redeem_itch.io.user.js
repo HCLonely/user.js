@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Redeem itch.io
 // @namespace    Redeem-itch.io
-// @version      1.2.5
+// @version      1.2.6
 // @description  自动激活itch.io key链接和免费itch.io游戏
 // @author       HCLonely
 // @iconURL      https://itch.io/favicon.ico
@@ -61,8 +61,18 @@
 
   /** **********************后台激活游戏*****************************/
   if (['keylol.com', 'www.steamgifts.com', 'www.reddit.com'].includes(window.location.hostname)) {
-    for (const e of $('a[href*="itch.io"]')) {
-      $(e).after(`<a data-itch-href="${$(e).attr('href')}" href="javascript:void(0)" onclick="redeemItchGame(this)" target="_self" style="margin-left:10px !important;">激活</a>`)
+    addRedeemBtn()
+    const observer = new MutationObserver(addRedeemBtn)
+    observer.observe(document.documentElement, {
+      attributes: true,
+      characterData: true,
+      childList: true,
+      subtree: true
+    })
+  }
+  function addRedeemBtn() {
+    for (const e of $('a[href*="itch.io"]:not(".redeem-itch-game")')) {
+      $(e).addClass("redeem-itch-game").after(`<a data-itch-href="${$(e).attr('href')}" href="javascript:void(0)" onclick="redeemItchGame(this)" target="_self" style="margin-left:10px !important;">激活</a>`)
     }
   }
   GM_registerMenuCommand('提取所有链接', async () => {
@@ -404,4 +414,5 @@
       return false
     })
   }
+
 })()
