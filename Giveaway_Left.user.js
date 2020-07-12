@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Giveaway Left Check
 // @namespace    Giveaway-Left-Check
-// @version      0.1
-// @description  检测其乐论坛福利放送版块的赠key剩余数量
+// @version      0.2
+// @description  检测其乐论坛福利放送版块的赠key剩余数量/时间
 // @author       HCLonely
 // @include      *://keylol.com/*
 // @require      https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js
@@ -16,6 +16,7 @@
 // @connect      prys.revadike.com
 // @connect      takekey.ru
 // @connect      alienwarearena.com
+// @connect      itch.io
 // ==/UserScript==
 
 (function () {
@@ -24,12 +25,13 @@
   const leftTitle = $('.subforum_left_title_left_up a').eq(3)
   const leftTitleHref = leftTitle.length > 0 ? leftTitle.attr('href') : ''
   if ((leftTitleHref.includes('f319-1') || (leftTitleHref.includes('page=1') && leftTitleHref.includes('fid=319'))) && leftTitle.text() === '福利放送') {
-    const marvelousgaLinks = $('a[href*="marvelousga.com"]')
-    const grabfreegameLinks = $('a[href*="grabfreegame.com"],a[href*="bananagiveaway.com"]')
-    const gamehagLinks = $('a[href*="gamehag.com"]')
-    const prysLinks = $('a[href*="prys.revadike.com"]')
-    const takekeyLinks = $('a[href*="takekey.ru"]')
-    const alienwarearenaLinks = $('a[href*="alienwarearena.com"]')
+    const marvelousgaLinks = $('a[href*="marvelousga.com/giveaway/"]')
+    const grabfreegameLinks = $('a[href*="grabfreegame.com/giveaway/"],a[href*="bananagiveaway.com/giveaway/"]')
+    const gamehagLinks = $('a[href*="gamehag.com/giveaway/"]')
+    const prysLinks = $('a[href*="prys.revadike.com/giveaway/?id="]')
+    const takekeyLinks = $('a[href*="takekey.ru/distribution/"]')
+    const alienwarearenaLinks = $('a[href*="alienwarearena.com/ucf/show/"]')
+    const itchLinks = $('a[href*="itch.io/s/"]')
 
     if (marvelousgaLinks.length > 0) {
       for (const e of marvelousgaLinks) {
@@ -68,20 +70,28 @@
         if (/https?:\/\/.*?\.alienwarearena\.com\/ucf\/show\/[\d]+.*?/.test(link)) checkAlienwarearena(link, e)
       }
     }
+    if (itchLinks.length > 0) {
+      for (const e of itchLinks) {
+        const link = $(e).attr('href')
+        if (/https?:\/\/itch\.io\/s\/[\d]+?\/.*/.test(link)) checkItch(link, e)
+      }
+    }
   }
   function checkMarvelousga (id, e) {
-    const thisEle = $('a[href="' + $(e).attr('href') + '"]')
     GM_xmlhttpRequest({
       method: 'get',
       url: 'https://marvelousga.com/',
       timeout: 30 * 1000,
       ontimeout: () => {
+        const thisEle = $('a[href="' + $(e).attr('href') + '"]')
         if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-red" title="请求超时">timeout</font>')
       },
       onerror: () => {
+        const thisEle = $('a[href="' + $(e).attr('href') + '"]')
         if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-red" title="请求失败">error</font>')
       },
       onload: response => {
+        const thisEle = $('a[href="' + $(e).attr('href') + '"]')
         try {
           const a = $(`<div>${response.responseText}</div>`).find('a[href*="' + id + '"]')
           if (a.length > 0) {
@@ -97,18 +107,20 @@
     })
   }
   function checkGrabfreegame (url, e) {
-    const thisEle = $('a[href="' + $(e).attr('href') + '"]')
     GM_xmlhttpRequest({
       method: 'get',
       url,
       timeout: 30 * 1000,
       ontimeout: () => {
+        const thisEle = $('a[href="' + $(e).attr('href') + '"]')
         if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-red" title="请求超时">timeout</font>')
       },
       onerror: () => {
+        const thisEle = $('a[href="' + $(e).attr('href') + '"]')
         if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-red" title="请求失败">error</font>')
       },
       onload: response => {
+        const thisEle = $('a[href="' + $(e).attr('href') + '"]')
         try {
           const counter = $(`<div>${response.responseText}</div>`).find('#giveaway .left>b')
           if (counter.length > 0) {
@@ -124,18 +136,20 @@
     })
   }
   function checkGamehag (url, e) {
-    const thisEle = $('a[href="' + $(e).attr('href') + '"]')
     GM_xmlhttpRequest({
       method: 'get',
       url,
       timeout: 30 * 1000,
       ontimeout: () => {
+        const thisEle = $('a[href="' + $(e).attr('href') + '"]')
         if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-red" title="请求超时">timeout</font>')
       },
       onerror: () => {
+        const thisEle = $('a[href="' + $(e).attr('href') + '"]')
         if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-red" title="请求失败">error</font>')
       },
       onload: response => {
+        const thisEle = $('a[href="' + $(e).attr('href') + '"]')
         try {
           const counter = $(`<div>${response.responseText}</div>`).find('div.giveaway-counter').not(':contains("day")').find('.strong')
           if (counter.length > 0) {
@@ -151,18 +165,20 @@
     })
   }
   function checkPrys (url, e) {
-    const thisEle = $('a[href="' + $(e).attr('href') + '"]')
     GM_xmlhttpRequest({
       method: 'get',
       url,
       timeout: 30 * 1000,
       ontimeout: () => {
+        const thisEle = $('a[href="' + $(e).attr('href') + '"]')
         if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-red" title="请求超时">timeout</font>')
       },
       onerror: () => {
+        const thisEle = $('a[href="' + $(e).attr('href') + '"]')
         if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-red" title="请求失败">error</font>')
       },
       onload: response => {
+        const thisEle = $('a[href="' + $(e).attr('href') + '"]')
         try {
           const counter = $(`<div>${response.responseText}</div>`).find('#header :contains("left")')
           if (counter.length > 0) {
@@ -178,18 +194,20 @@
     })
   }
   function checkTakekey (url, e) {
-    const thisEle = $('a[href="' + $(e).attr('href') + '"]')
     GM_xmlhttpRequest({
       method: 'get',
       url,
       timeout: 30 * 1000,
       ontimeout: () => {
+        const thisEle = $('a[href="' + $(e).attr('href') + '"]')
         if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-red" title="请求超时">timeout</font>')
       },
       onerror: () => {
+        const thisEle = $('a[href="' + $(e).attr('href') + '"]')
         if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-red" title="请求失败">error</font>')
       },
       onload: response => {
+        const thisEle = $('a[href="' + $(e).attr('href') + '"]')
         try {
           const counter = $(`<div>${response.responseText}</div>`).find('span.text-muted:contains("Left")')
           if (counter.length > 0) {
@@ -206,18 +224,20 @@
     })
   }
   function checkAlienwarearena (url, e) {
-    const thisEle = $('a[href="' + $(e).attr('href') + '"]')
     GM_xmlhttpRequest({
       method: 'get',
       url,
       timeout: 30 * 1000,
       ontimeout: () => {
+        const thisEle = $('a[href="' + $(e).attr('href') + '"]')
         if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-red" title="请求超时">timeout</font>')
       },
       onerror: () => {
+        const thisEle = $('a[href="' + $(e).attr('href') + '"]')
         if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-red" title="请求失败">error</font>')
       },
       onload: response => {
+        const thisEle = $('a[href="' + $(e).attr('href') + '"]')
         try {
           let userCountry = response.responseText.match(/user_country.*?=.*?"([\w]+)"/)
           userCountry = userCountry ? userCountry[1] : ''
@@ -226,7 +246,11 @@
           let fullLevel = response.responseText.match(/full_level.*?=.*?([\d]+)/)
           fullLevel = fullLevel ? parseInt(fullLevel[1]) : 0
           let countryKeys = response.responseText.match(/countryKeys.*?=.*?(\{.+\});/)
-          countryKeys = countryKeys ? JSON.parse(countryKeys[1]) : {}
+          if (countryKeys) {
+            countryKeys = JSON.parse(countryKeys[1])
+          } else {
+            return
+          }
 
           const keyType = prestigeLevel ? 'prestige' : 'normal'
           let userCountryKeys = countryKeys[userCountry][keyType]
@@ -273,6 +297,64 @@
         }
       }
     })
+  }
+  function checkItch (url, e) {
+    GM_xmlhttpRequest({
+      method: 'get',
+      url,
+      timeout: 30 * 1000,
+      ontimeout: () => {
+        const thisEle = $('a[href="' + $(e).attr('href') + '"]')
+        if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-red" title="请求超时">timeout</font>')
+      },
+      onerror: () => {
+        const thisEle = $('a[href="' + $(e).attr('href') + '"]')
+        if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-red" title="请求失败">error</font>')
+      },
+      onload: response => {
+        const thisEle = $('a[href="' + $(e).attr('href') + '"]')
+        try {
+          const counter = $(`<div>${response.responseText}</div>`).find('.promotion_dates .date_format')
+          if (counter.length > 0) {
+            const endTime = counter.attr('title').trim() + 'Z'
+            const time = getTime(endTime)
+            if (time !== 0) {
+              if (!thisEle.next().hasClass('left-keys')) thisEle.after(`<font data-time="${endTime}" class="left-keys ${time.class}" title="剩余时间">${time.time}</font>`)
+              setInterval(function () {
+                const leftTimeEle = $(`font[data-time="${endTime}"]`)
+                const leftTime = getTime(endTime)
+                if (leftTime !== 0) {
+                  if (!leftTimeEle.hasClass(leftTime.class)) leftTimeEle.attr('class', `left-keys ${leftTime.class}`)
+                  leftTimeEle.text(leftTime.time)
+                } else {
+                  leftTimeEle.attr('class', 'left-keys lk-red').attr('title', '活动已结束').text('end')
+                }
+              }, 500)
+            } else {
+              if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-red" title="活动已结束">end</font>')
+            }
+          } else {
+            if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-red" title="活动已结束">end</font>')
+          }
+        } catch (err) {
+          if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-red" title="获取数据失败">error</font>')
+        }
+      }
+    })
+  }
+  function getTime (dateStr) {
+    const endDate = new Date(dateStr).getTime()
+    const nowDate = new Date().getTime()
+    if (nowDate > endDate) return 0
+    const restSec = endDate - nowDate
+    const day = parseInt(restSec / (60 * 60 * 24 * 1000))
+    const hour = parseInt(restSec / (60 * 60 * 1000) % 24)
+    const min = parseInt(restSec / (60 * 1000) % 60)
+    const sec = parseInt(restSec / 1000 % 60)
+    return {
+      time: `${day > 0 ? `${day} 天 ` : ''} ${hour}小时${min}分${sec}秒`,
+      class: day > 0 ? 'lk-green' : (hour > 1 ? 'lk-yellow' : 'lk-red')
+    }
   }
   function getClass (left) {
     const leftKey = parseInt(left)
