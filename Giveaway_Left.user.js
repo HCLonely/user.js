@@ -4,6 +4,10 @@
 // @version      0.2
 // @description  检测其乐论坛福利放送版块的赠key剩余数量/时间
 // @author       HCLonely
+// @iconURL      https://cdn.jsdelivr.net/gh/HCLonely/auto-task@V3/public/favicon.ico
+// @homepage     https://github.com/HCLonely/user.js
+// @supportURL   https://github.com/HCLonely/user.js/issues
+// @updateURL    https://github.com/HCLonely/auto-task/raw/V3/auto-task.user.js
 // @include      *://keylol.com/*
 // @require      https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js
 // @run-at       document-end
