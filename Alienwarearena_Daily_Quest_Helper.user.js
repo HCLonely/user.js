@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Alienwarearena Daily Quest Helper
 // @namespace    Alienwarearena-Daily-Quest-Helper
-// @version      1.1.0
+// @version      1.1.1
 // @description  外星人网站自动每日任务（非美区）
 // @author       HCLonely
 // @iconURL      https://www.alienwarearena.com/favicon.ico
@@ -10,8 +10,11 @@
 // @updateURL    https://github.com/HCLonely/user.js/raw/master/Alienwarearena_Daily_Quest_Helper.user.js
 // @include      https://*.alienwarearena.com/*
 // @grant        GM_addStyle
+// @grant        GM_setValue
+// @grant        GM_getValue
 // @grant        GM_xmlhttpRequest
 // @grant        GM_openInTab
+// @grant        GM_registerMenuCommand
 // @run-at       document-end
 // @connect      alienwarearena.com
 // @require      https://greasyfork.org/scripts/388035-$jQuery/code/$jQuery.js?version=721233
@@ -102,25 +105,69 @@
     str += '%'
     return str
   }
-  function finishTask (e) {
+  const defaultRule = {
+    changeBadge: [
+      '/Badge Swap/gim'
+    ],
+    share: [
+      '/Share|sharing/gim'
+    ],
+    changeBorder: [
+      '/border swap/gim'
+    ],
+    changeAvatar: [
+      '/(Change|new).*?Avatar|Avatar Swap/gim'
+    ],
+    uploadVideo: [
+      '/trailer|video/gim'
+    ],
+    updateAboutMe: [
+      '/update.*?about.*?me/gim'
+    ],
+    readNews: [
+      '/read all about it|read me/gim'
+    ]
+  }
+  function taskType (e) {
+    const rule = Object.assign(defaultRule, GM_getValue('rule'))
+    let type = 'unknown'
+    for (const [k, v] of Object.entries(rule)) {
+      for (const r of v) {
+        if (/^\/[\w\W]*?\/[gimu]{0,4}$/.test(r)) {
+          const reg = eval(r) // eslint-disable-line no-eval
+          if (reg instanceof RegExp && reg.test(e)) {
+            type = k
+            break
+          }
+        } else if (e.includes(r)) {
+          type = k
+          break
+        }
+      }
+      if (type !== 'unknown') break
+    }
+    return type
+  }
+  async function finishTask (e) {
     if (/^Complete/gi.test($('.profile-arp-status .quest-item-progress:first').text())) {
       swal('任务已完成！', '', 'success')
       return 0
     }
+    const type = await taskType(e.text().trim())
     const text = e.text().trim()
-    if (/Badge Swap/gim.test(text)) {
+    if (type === 'changeBadge') {
       changeBadge(text)
-    } else if (/Share|sharing/gim.test(text)) {
+    } else if (type === 'share') {
       share(text)
-    } else if (/border swap/gim.test(text)) {
+    } else if (type === 'changeBorder') {
       changeBorder(text)
-    } else if (/(Change|new).*?Avatar|Avatar Swap/gim.test(text)) {
+    } else if (type === 'changeAvatar') {
       changeAvatar(text)
-    } else if (/update.*?about.*?me/gim.test(text)) {
+    } else if (type === 'updateAboutMe') {
       updateAboutMe(text)
-    } else if (/trailer|video/gim.test(text)) {
+    } else if (type === 'uploadVideo') {
       uploadVideo(text)
-    } else if (/read all about it|read me/gim.test(text)) {
+    } else if (type === 'readNews') {
       readNews(text)
     } else {
       swal({
@@ -913,4 +960,125 @@ Use atleast 8 characters / 1 upper case letter / 1 lower case letter / 1 special
       }
     })
   }
+  function changeRule () {
+    swal({
+      closeOnClickOutside: false,
+      title: '任务匹配规则',
+      text: '查看/更换任务匹配规则',
+      className: 'select-task',
+      buttons: {
+        badge: {
+          text: '更换徽章(Badge)',
+          value: 'badge',
+          visible: true,
+          className: '',
+          closeModal: true
+        },
+        border: {
+          text: '更换边框(Border)',
+          value: 'border',
+          visible: true,
+          className: '',
+          closeModal: true
+        },
+        share: {
+          text: '分享帖子(Share)',
+          value: 'share',
+          visible: true,
+          className: '',
+          closeModal: true
+        },
+        avatar: {
+          text: '更换头像(Avatar)',
+          value: 'avatar',
+          visible: true,
+          className: '',
+          closeModal: true
+        },
+        aboutme: {
+          text: '更新About Me',
+          value: 'aboutme',
+          visible: true,
+          className: '',
+          closeModal: true
+        },
+        video: {
+          text: '发布视频(Video)',
+          value: 'video',
+          visible: true,
+          className: '',
+          closeModal: true
+        },
+        read: {
+          text: '阅读新闻(News)',
+          value: 'read',
+          visible: true,
+          className: '',
+          closeModal: true
+        },
+        cancel: {
+          text: '取消',
+          value: null,
+          visible: true,
+          className: '',
+          closeModal: true
+        }
+      }
+    }).then(value => {
+      let type = false
+      switch (value) {
+        case 'badge':
+          type = 'changeBadge'
+          break
+        case 'border':
+          type = 'changeBorder'
+          break
+        case 'share':
+          type = 'share'
+          break
+        case 'avatar':
+          type = 'changeAvatar'
+          break
+        case 'aboutme':
+          type = 'updateAboutMe'
+          break
+        case 'video':
+          type = 'uploadVideo'
+          break
+        case 'read':
+          type = 'readNews'
+          break
+      }
+      if (type) {
+        const rule = GM_getValue('rule') || defaultRule
+        swal({
+          title: type + '规则',
+          text: '每行一个规则，可使用正则表达式或字符串\n正则表达式：使用RegExp.test(任务名)进行匹配\n字符串：检测任务名中是否包含该字符串',
+          content: $(`<textarea style="width: 100%;height: 100px;" id="adqh-rule" data-type="${type}">${rule[type].join('\n')}</textarea>`)[0],
+          buttons: {
+            cancel: {
+              text: '取消',
+              value: false,
+              visible: true,
+              className: '',
+              closeModal: true
+            },
+            confirm: {
+              text: '确定',
+              value: true,
+              visible: true,
+              className: '',
+              closeModal: true
+            }
+          }
+        }).then(value => {
+          if (value) {
+            rule[type] = $('#adqh-rule').val().split('\n')
+            GM_setValue('rule', rule)
+          }
+        })
+      }
+    })
+  }
+  GM_registerMenuCommand('任务匹配规则', changeRule)
 })($jQuery)
