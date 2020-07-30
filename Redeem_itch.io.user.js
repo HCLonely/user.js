@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Redeem itch.io
 // @namespace    Redeem-itch.io
-// @version      1.2.7
+// @version      1.2.8
 // @description  自动激活itch.io key链接和免费itch.io游戏
 // @author       HCLonely
 // @iconURL      https://itch.io/favicon.ico
@@ -77,7 +77,7 @@
   }
   GM_registerMenuCommand('提取所有链接', async () => {
     let gamesLink = []
-    for (const e of $('a[href*="itch.io"]:not(".itch-io-game-link-owned"):not([href*="itch.io/b/"])')) {
+    for (const e of $('a[href*="itch.io"]:not(".itch-io-game-link-owned"):not([href*="itch.io/b/"]):not([href*="itch.io/c/"])')) {
       const links = await getUrlLink(e)
       gamesLink = [...gamesLink, ...links]
     }
@@ -159,6 +159,8 @@
       })
     } else if (/^https?:\/\/.+?\.itch\.io\/[^/]+?(\/purchase)?$/.test(url)) {
       return [url.replace('/purchase', '').replace(/\/$/, '')]
+    } else {
+      return []
     }
   }
   async function redeemGame (e) {
