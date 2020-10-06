@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Redeem itch.io
 // @namespace    Redeem-itch.io
-// @version      1.2.8
+// @version      1.2.9
 // @description  自动激活itch.io key链接和免费itch.io游戏
 // @author       HCLonely
 // @iconURL      https://itch.io/favicon.ico
@@ -9,6 +9,7 @@
 // @include      *://keylol.com/*
 // @include      *://www.steamgifts.com/discussion/*
 // @include      *://www.reddit.com/r/*
+// @include      *://new.isthereanydeal.com/deals/*
 // @supportURL   https://blog.hclonely.com/posts/578f9be7/
 // @homepage     https://blog.hclonely.com/posts/578f9be7/
 // @require      https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.slim.min.js
@@ -45,7 +46,7 @@
   if (/^https?:\/\/.*?itch\.io\/.*?\/purchase(\?.*?)?$/.test(url) && /No thanks, just take me to the downloads|不用了，请带我去下载页面/i.test($('a.direct_download_btn').text())) {
     $('a.direct_download_btn')[0].click()
   } else if ($('.purchase_banner_inner').length === 0 && (/0\.00/gim.test($('.button_message').eq(0).find('.dollars[itemprop]').text()) || /0\.00/gim.test($('.money_input').attr('placeholder')) || /自己出价|Name your own price/gim.test($('.button_message').eq(0).find('.buy_message').text()))) {
-    window.open(url + '/purchase', '_self')
+    $('.buy_btn').after(`<a data-itch-href="${$('.buy_btn').attr('href')}" href="javascript:void(0)" onclick="redeemItchGame(this)" target="_self" class="button" one-link-mark="yes" title="仅支持免费游戏">后台领取</a>`)
   }
 
   /** **********************限时免费游戏包*****************************/
@@ -60,7 +61,7 @@
   }
 
   /** **********************后台激活游戏*****************************/
-  if (['keylol.com', 'www.steamgifts.com', 'www.reddit.com'].includes(window.location.hostname)) {
+  if (['keylol.com', 'www.steamgifts.com', 'www.reddit.com', 'new.isthereanydeal.com'].includes(window.location.hostname)) {
     addRedeemBtn()
     const observer = new MutationObserver(addRedeemBtn)
     observer.observe(document.documentElement, {
