@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Alienwarearena Daily Quest Helper
 // @namespace    Alienwarearena-Daily-Quest-Helper
-// @version      1.1.1
+// @version      1.1.2
 // @description  外星人网站自动每日任务（非美区）
 // @author       HCLonely
 // @iconURL      https://www.alienwarearena.com/favicon.ico
@@ -42,7 +42,7 @@
   $('#notification-dropdown').before(`
   <li id="aline-auto-task" style="margin-left: 0;" title="自动每日任务（非美区）">
     <a href="javascript:void(0)" class="nav-link">
-      <svg t="1590725436508" style="width: auto;" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2817" width="24" height="24"><path d="M228.928 320h534.144v64H228.928zM228.928 512h534.144v64H228.928zM228.928 704h534.144v64H228.928z" p-id="2818" fill="#ffffff"></path><path d="M124.48 950.272L124.16 118.016h169.024v34.56c0 38.656 31.296 70.144 69.76 70.144h279.488a70.016 70.016 0 0 0 69.696-70.144v-34.56l168.704-0.32 0.32 832.32-756.672 0.256z m517.824-866.816l0.128 69.44-279.424-0.32v-69.12l-0.128-0.384 279.424 0.384zM880.704 50.56h-178.368c-12.096-22.208-34.24-37.312-59.904-37.312H362.88c-25.6 0-47.808 15.104-59.904 37.312H124.16c-38.4 0-69.504 33.28-69.504 74.24v820.736c0 40.96 31.232 74.24 69.568 74.24h756.928c38.4 0 69.44-33.28 69.504-74.24V124.8c-0.128-41.152-31.488-74.368-69.952-74.24z" p-id="2819" fill="#ffffff"></path></svg>
+      <i class="awicon" style="background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAOtJREFUeNpi/P//PwMjIyMDNgCUCwVSWQy4wQ0grgbqf4dDPwMjiAACByC2AGJ3NDUODITBASxiC4GWLgCZzQQViAbidhwGNDLiAHgsnQ80XBTEYIEKqIAIoB5HJO85wHwAZDfg8wIOfdog37Hg0XQAqBjk/Xo8Zn8G4rn4LGch5DKoi3CB20A1T8m2AOYTBgoAC47k1UCqQUCHNJDiA3sikygyIN4C5FRBKWBioDEYGAuAkbz/P4mA1GR6EIopBiykJLlBGQejGW2kZjRapKJroEgF5WAqmv0E3rQAYj8gPvOfemA+zGyAAAMAPgHRQBxihIMAAAAASUVORK5CYII=)"></i>
     </a>
   </li>
   `)
