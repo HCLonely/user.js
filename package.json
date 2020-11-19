@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "standard Alienwarearena_Daily_Quest_Helper.user.js --fix",
-    "itch": "standard Redeem_itch.io.user.js --fix"
+    "itch": "standard Redeem_itch.io.user.js --fix",
+    "blbl": "standard bilive_skin_custom.user.js --fix"
   },
   "repository": {
     "type": "git",
@@ -20,8 +21,8 @@
   "devDependencies": {
     "standard": "^14.3.4"
   },
-  "standard":{
-    "global":[
+  "standard": {
+    "global": [
       "$",
       "jQuery",
       "GM_xmlhttpRequest",
