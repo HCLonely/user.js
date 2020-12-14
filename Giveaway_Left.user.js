@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Giveaway Left Check
 // @namespace    Giveaway-Left-Check
-// @version      0.3
+// @version      0.4
 // @description  检测其乐论坛福利放送版块的赠key剩余数量/时间
 // @author       HCLonely
 // @iconURL      https://auto-task.hclonely.com/img/favicon.ico
@@ -22,6 +22,8 @@
 // @connect      alienwarearena.com
 // @connect      giveaway.su
 // @connect      givekey.ru
+// @connect      store.cubejoy.com
+// @connect      cart.cubejoy.com
 // @connect      itch.io
 // ==/UserScript==
 
@@ -40,6 +42,7 @@
     const itchLinks = $('a[href*="itch.io/s/"]')
     const giveawaysuLinks = $('a[href*="giveaway.su/giveaway/view/"]')
     const givekeyLinks = $('a[href*="givekey.ru/giveaway/"]')
+    const cubejoyLinks = $('a[href*="store.cubejoy.com/html/en/store/goodsdetail/detail"],a[href*="cart.cubejoy.com/shop/xnEdition.html?pid="]')
 
     if (marvelousgaLinks.length > 0) {
       for (const e of marvelousgaLinks) {
@@ -94,6 +97,13 @@
       for (const e of givekeyLinks) {
         const link = $(e).attr('href')
         if (/^https?:\/\/givekey\.ru\/giveaway\/[\d]+/.test(link)) checkGivekey(link, e)
+      }
+    }
+    if (cubejoyLinks.length > 0) {
+      for (const e of cubejoyLinks) {
+        const link = $(e).attr('href')
+        const gameId = link.match(/goodsdetail\/detail([\d]+?)\.html/) || link.match(/xnEdition\.html\?pid=([\d]+)/)
+        if (gameId && gameId[1]) checkCubejoy(gameId[1], e)
       }
     }
   }
@@ -430,6 +440,41 @@
             if (!thisEle.next().hasClass('left-keys')) thisEle.after(`<font class="left-keys ${getClass(leftKey)}" title="剩余key数量">${leftKey}</font>`)
           } else {
             if (!thisEle.next().hasClass('left-keys')) thisEle.after(`<font class="left-keys ${getClass(0)}" title="剩余key数量">0</font>`)
+          }
+        } catch (err) {
+          if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-black" title="获取数据失败">error</font>')
+          console.error(err)
+        }
+      }
+    })
+  }
+  function checkCubejoy (gameId, e) {
+    GM_xmlhttpRequest({
+      method: 'get',
+      url: 'https://cart.cubejoy.com/Handler/Data.ashx?type=GetModel&param=' + gameId + '%7C1',
+      timeout: 30 * 1000,
+      responseType: 'json',
+      ontimeout: () => {
+        const thisEle = $('a[href="' + $(e).attr('href') + '"]')
+        if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-black" title="请求超时">timeout</font>')
+      },
+      onerror: (err) => {
+        const thisEle = $('a[href="' + $(e).attr('href') + '"]')
+        if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-black" title="请求失败">error</font>')
+        console.error(err)
+      },
+      onload: response => {
+        const thisEle = $('a[href="' + $(e).attr('href') + '"]')
+        try {
+          const price = response.response.Data.s_price
+          if (/^[\d]+$/.test(price)) {
+            if (price === 0) {
+              if (!thisEle.next().hasClass('left-keys')) thisEle.after(`<font class="left-keys ${getClass(100)}" title="游戏价格">¥ 0.00</font>`)
+            } else if (price > 0) {
+              if (!thisEle.next().hasClass('left-keys')) thisEle.after(`<font class="left-keys ${getClass(0)}" title="游戏价格">¥ ${price / 100}</font>`)
+            }
+          } else {
+            if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-black" title="获取游戏价格失败">error</font>')
           }
         } catch (err) {
           if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-black" title="获取数据失败">error</font>')
