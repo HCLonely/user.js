@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name         Giveaway Left Check
 // @namespace    Giveaway-Left-Check
-// @version      0.2
+// @version      0.3
 // @description  检测其乐论坛福利放送版块的赠key剩余数量/时间
 // @author       HCLonely
-// @iconURL      https://cdn.jsdelivr.net/gh/HCLonely/auto-task@V3/public/favicon.ico
+// @iconURL      https://auto-task.hclonely.com/img/favicon.ico
 // @homepage     https://github.com/HCLonely/user.js
 // @supportURL   https://github.com/HCLonely/user.js/issues
 // @updateURL    https://github.com/HCLonely/auto-task/raw/V3/auto-task.user.js
@@ -20,6 +20,8 @@
 // @connect      prys.revadike.com
 // @connect      takekey.ru
 // @connect      alienwarearena.com
+// @connect      giveaway.su
+// @connect      givekey.ru
 // @connect      itch.io
 // ==/UserScript==
 
@@ -36,6 +38,8 @@
     const takekeyLinks = $('a[href*="takekey.ru/distribution/"]')
     const alienwarearenaLinks = $('a[href*="alienwarearena.com/ucf/show/"]')
     const itchLinks = $('a[href*="itch.io/s/"]')
+    const giveawaysuLinks = $('a[href*="giveaway.su/giveaway/view/"]')
+    const givekeyLinks = $('a[href*="givekey.ru/giveaway/"]')
 
     if (marvelousgaLinks.length > 0) {
       for (const e of marvelousgaLinks) {
@@ -47,37 +51,49 @@
     if (grabfreegameLinks.length > 0) {
       for (const e of grabfreegameLinks) {
         const link = $(e).attr('href')
-        if (/https?:\/\/www\.(grabfreegame|bananagiveaway)\.com\/giveaway\/.*/.test(link)) checkGrabfreegame(link, e)
+        if (/^https?:\/\/www\.(grabfreegame|bananagiveaway)\.com\/giveaway\/.*/.test(link)) checkGrabfreegame(link, e)
       }
     }
     if (gamehagLinks.length > 0) {
       for (const e of gamehagLinks) {
         const link = $(e).attr('href')
-        if (/https?:\/\/.*?gamehag\.com\/giveaway\/[\d]+.*?/.test(link)) checkGamehag(link, e)
+        if (/^https?:\/\/.*?gamehag\.com\/giveaway\/[\d]+.*?/.test(link)) checkGamehag(link, e)
       }
     }
     if (prysLinks.length > 0) {
       for (const e of prysLinks) {
         const link = $(e).attr('href')
-        if (/https?:\/\/prys\.revadike\.com\/giveaway\/\?id=[\d]+/.test(link)) checkPrys(link, e)
+        if (/^https?:\/\/prys\.revadike\.com\/giveaway\/\?id=[\d]+/.test(link)) checkPrys(link, e)
       }
     }
     if (takekeyLinks.length > 0) {
       for (const e of takekeyLinks) {
         const link = $(e).attr('href')
-        if (/https?:\/\/takekey\.ru\/distribution\/[\d]+/.test(link)) checkTakekey(link, e)
+        if (/^https?:\/\/takekey\.ru\/distribution\/[\d]+/.test(link)) checkTakekey(link, e)
       }
     }
     if (alienwarearenaLinks.length > 0) {
       for (const e of alienwarearenaLinks) {
         const link = $(e).attr('href')
-        if (/https?:\/\/.*?\.alienwarearena\.com\/ucf\/show\/[\d]+.*?/.test(link)) checkAlienwarearena(link, e)
+        if (/^https?:\/\/.*?\.alienwarearena\.com\/ucf\/show\/[\d]+.*?/.test(link)) checkAlienwarearena(link, e)
       }
     }
     if (itchLinks.length > 0) {
       for (const e of itchLinks) {
         const link = $(e).attr('href')
-        if (/https?:\/\/itch\.io\/s\/[\d]+?\/.*/.test(link)) checkItch(link, e)
+        if (/^https?:\/\/itch\.io\/s\/[\d]+?\/.*/.test(link)) checkItch(link, e)
+      }
+    }
+    if (giveawaysuLinks.length > 0) {
+      for (const e of giveawaysuLinks) {
+        const link = $(e).attr('href')
+        if (/^https?:\/\/giveaway\.su\/giveaway\/view\/[\d]+/.test(link)) checkGiveawaysu(link, e)
+      }
+    }
+    if (givekeyLinks.length > 0) {
+      for (const e of givekeyLinks) {
+        const link = $(e).attr('href')
+        if (/^https?:\/\/givekey\.ru\/giveaway\/[\d]+/.test(link)) checkGivekey(link, e)
       }
     }
   }
@@ -88,11 +104,12 @@
       timeout: 30 * 1000,
       ontimeout: () => {
         const thisEle = $('a[href="' + $(e).attr('href') + '"]')
-        if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-red" title="请求超时">timeout</font>')
+        if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-black" title="请求超时">timeout</font>')
       },
-      onerror: () => {
+      onerror: (err) => {
         const thisEle = $('a[href="' + $(e).attr('href') + '"]')
-        if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-red" title="请求失败">error</font>')
+        if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-black" title="请求失败">error</font>')
+        console.error(err)
       },
       onload: response => {
         const thisEle = $('a[href="' + $(e).attr('href') + '"]')
@@ -105,7 +122,8 @@
             if (!thisEle.next().hasClass('left-keys')) thisEle.after(`<font class="left-keys ${getClass(0)}" title="剩余key数量">0</font>`)
           }
         } catch (err) {
-          if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-red" title="获取数据失败">error</font>')
+          if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-black" title="获取数据失败">error</font>')
+          console.error(err)
         }
       }
     })
@@ -117,11 +135,12 @@
       timeout: 30 * 1000,
       ontimeout: () => {
         const thisEle = $('a[href="' + $(e).attr('href') + '"]')
-        if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-red" title="请求超时">timeout</font>')
+        if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-black" title="请求超时">timeout</font>')
       },
-      onerror: () => {
+      onerror: (err) => {
         const thisEle = $('a[href="' + $(e).attr('href') + '"]')
-        if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-red" title="请求失败">error</font>')
+        if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-black" title="请求失败">error</font>')
+        console.error(err)
       },
       onload: response => {
         const thisEle = $('a[href="' + $(e).attr('href') + '"]')
@@ -134,7 +153,8 @@
             if (!thisEle.next().hasClass('left-keys')) thisEle.after(`<font class="left-keys ${getClass(0)}" title="剩余key数量">0</font>`)
           }
         } catch (err) {
-          if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-red" title="获取数据失败">error</font>')
+          if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-black" title="获取数据失败">error</font>')
+          console.error(err)
         }
       }
     })
@@ -146,11 +166,12 @@
       timeout: 30 * 1000,
       ontimeout: () => {
         const thisEle = $('a[href="' + $(e).attr('href') + '"]')
-        if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-red" title="请求超时">timeout</font>')
+        if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-black" title="请求超时">timeout</font>')
       },
-      onerror: () => {
+      onerror: (err) => {
         const thisEle = $('a[href="' + $(e).attr('href') + '"]')
-        if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-red" title="请求失败">error</font>')
+        if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-black" title="请求失败">error</font>')
+        console.error(err)
       },
       onload: response => {
         const thisEle = $('a[href="' + $(e).attr('href') + '"]')
@@ -163,7 +184,8 @@
             if (!thisEle.next().hasClass('left-keys')) thisEle.after(`<font class="left-keys ${getClass(0)}" title="剩余key数量">0</font>`)
           }
         } catch (err) {
-          if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-red" title="获取数据失败">error</font>')
+          if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-black" title="获取数据失败">error</font>')
+          console.error(err)
         }
       }
     })
@@ -175,11 +197,12 @@
       timeout: 30 * 1000,
       ontimeout: () => {
         const thisEle = $('a[href="' + $(e).attr('href') + '"]')
-        if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-red" title="请求超时">timeout</font>')
+        if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-black" title="请求超时">timeout</font>')
       },
-      onerror: () => {
+      onerror: (err) => {
         const thisEle = $('a[href="' + $(e).attr('href') + '"]')
-        if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-red" title="请求失败">error</font>')
+        if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-black" title="请求失败">error</font>')
+        console.error(err)
       },
       onload: response => {
         const thisEle = $('a[href="' + $(e).attr('href') + '"]')
@@ -192,7 +215,8 @@
             if (!thisEle.next().hasClass('left-keys')) thisEle.after(`<font class="left-keys ${getClass(0)}" title="剩余key数量">0</font>`)
           }
         } catch (err) {
-          if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-red" title="获取数据失败">error</font>')
+          if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-black" title="获取数据失败">error</font>')
+          console.error(err)
         }
       }
     })
@@ -204,11 +228,12 @@
       timeout: 30 * 1000,
       ontimeout: () => {
         const thisEle = $('a[href="' + $(e).attr('href') + '"]')
-        if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-red" title="请求超时">timeout</font>')
+        if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-black" title="请求超时">timeout</font>')
       },
-      onerror: () => {
+      onerror: (err) => {
         const thisEle = $('a[href="' + $(e).attr('href') + '"]')
-        if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-red" title="请求失败">error</font>')
+        if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-black" title="请求失败">error</font>')
+        console.error(err)
       },
       onload: response => {
         const thisEle = $('a[href="' + $(e).attr('href') + '"]')
@@ -222,7 +247,8 @@
             if (!thisEle.next().hasClass('left-keys')) thisEle.after(`<font class="left-keys ${getClass(0)}" title="剩余key数量">0</font>`)
           }
         } catch (err) {
-          if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-red" title="获取数据失败">error</font>')
+          if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-black" title="获取数据失败">error</font>')
+          console.error(err)
         }
       }
     })
@@ -234,11 +260,12 @@
       timeout: 30 * 1000,
       ontimeout: () => {
         const thisEle = $('a[href="' + $(e).attr('href') + '"]')
-        if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-red" title="请求超时">timeout</font>')
+        if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-black" title="请求超时">timeout</font>')
       },
-      onerror: () => {
+      onerror: (err) => {
         const thisEle = $('a[href="' + $(e).attr('href') + '"]')
-        if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-red" title="请求失败">error</font>')
+        if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-black" title="请求失败">error</font>')
+        console.error(err)
       },
       onload: response => {
         const thisEle = $('a[href="' + $(e).attr('href') + '"]')
@@ -297,7 +324,8 @@
             }
           }
         } catch (err) {
-          if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-red" title="获取数据失败">error</font>')
+          if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-black" title="获取数据失败">error</font>')
+          console.error(err)
         }
       }
     })
@@ -309,11 +337,12 @@
       timeout: 30 * 1000,
       ontimeout: () => {
         const thisEle = $('a[href="' + $(e).attr('href') + '"]')
-        if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-red" title="请求超时">timeout</font>')
+        if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-black" title="请求超时">timeout</font>')
       },
-      onerror: () => {
+      onerror: (err) => {
         const thisEle = $('a[href="' + $(e).attr('href') + '"]')
-        if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-red" title="请求失败">error</font>')
+        if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-black" title="请求失败">error</font>')
+        console.error(err)
       },
       onload: response => {
         const thisEle = $('a[href="' + $(e).attr('href') + '"]')
@@ -341,7 +370,70 @@
             if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-red" title="活动已结束">end</font>')
           }
         } catch (err) {
-          if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-red" title="获取数据失败">error</font>')
+          if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-black" title="获取数据失败">error</font>')
+          console.error(err)
+        }
+      }
+    })
+  }
+  function checkGiveawaysu (url, e) {
+    GM_xmlhttpRequest({
+      method: 'get',
+      url,
+      timeout: 30 * 1000,
+      ontimeout: () => {
+        const thisEle = $('a[href="' + $(e).attr('href') + '"]')
+        if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-black" title="请求超时">timeout</font>')
+      },
+      onerror: (err) => {
+        const thisEle = $('a[href="' + $(e).attr('href') + '"]')
+        if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-black" title="请求失败">error</font>')
+        console.error(err)
+      },
+      onload: response => {
+        const thisEle = $('a[href="' + $(e).attr('href') + '"]')
+        try {
+          const counter = $(`<div>${response.responseText}</div>`).find('div.giveaway-ended')
+          if (counter.length > 0) {
+            if (!thisEle.next().hasClass('left-keys')) thisEle.after(`<font class="left-keys ${getClass(0)}" title="已结束">End</font>`)
+          } else {
+            if (!thisEle.next().hasClass('left-keys')) thisEle.after(`<font class="left-keys ${getClass(100)}" title="进行中">Active</font>`)
+          }
+        } catch (err) {
+          if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-black" title="获取数据失败">error</font>')
+          console.error(err)
+        }
+      }
+    })
+  }
+  function checkGivekey (url, e) {
+    GM_xmlhttpRequest({
+      method: 'get',
+      url,
+      timeout: 30 * 1000,
+      ontimeout: () => {
+        const thisEle = $('a[href="' + $(e).attr('href') + '"]')
+        if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-black" title="请求超时">timeout</font>')
+      },
+      onerror: (err) => {
+        const thisEle = $('a[href="' + $(e).attr('href') + '"]')
+        if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-black" title="请求失败">error</font>')
+        console.error(err)
+      },
+      onload: response => {
+        const thisEle = $('a[href="' + $(e).attr('href') + '"]')
+        try {
+          const counter = $(`<div>${response.responseText}</div>`).find('#keys_count')
+          if (counter.length > 0) {
+            const leftKey = counter.text().trim().match(/[\d]+/)[0]
+
+            if (!thisEle.next().hasClass('left-keys')) thisEle.after(`<font class="left-keys ${getClass(leftKey)}" title="剩余key数量">${leftKey}</font>`)
+          } else {
+            if (!thisEle.next().hasClass('left-keys')) thisEle.after(`<font class="left-keys ${getClass(0)}" title="剩余key数量">0</font>`)
+          }
+        } catch (err) {
+          if (!thisEle.next().hasClass('left-keys')) thisEle.after('<font class="left-keys lk-black" title="获取数据失败">error</font>')
+          console.error(err)
         }
       }
     })
@@ -362,7 +454,7 @@
   }
   function getClass (left) {
     const leftKey = parseInt(left)
-    if (leftKey >= 100) {
+    if (leftKey > 99) {
       return 'lk-green'
     } else if (leftKey > 0 && leftKey < 100) {
       return 'lk-yellow'
@@ -380,11 +472,14 @@
 .lk-green{
   background-color: #5cb85c;
 }
-.lk-yelow{
+.lk-yellow{
   background-color: #f0ad4e;
 }
 .lk-red{
   background-color: #d9534f;
+}
+.lk-black{
+  background-color: #000;
 }
   `)
 })()
