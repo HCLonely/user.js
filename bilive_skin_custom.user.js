@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         bilibili直播自定义皮肤背景
 // @namespace    bilibili- ( ゜- ゜)つロ 乾杯~
-// @version      1.1.3
+// @version      1.1.4
 // @description  自定义bilibili直播的皮肤和背景，仅自己可见！
 // @author       HCLonely
 // @include      /^https?:\/\/live.bilibili.com\/(blanc\/)?[\d]+/
@@ -22,6 +22,8 @@
 // @compatible   chrome 没有测试其他浏览器的兼容性
 // ==/UserScript==
 
+/* global $jQuery */
+/* esline-disable camel-case */
 (function ($jq) {
   window.onload = function () {
     'use strict'
@@ -223,7 +225,7 @@
       function set_info (e) {
         let info = ''
         const type = e[0]
-        const classType = e[0] == 'skin' ? 'skin' : 'background'
+        const classType = e[0] === 'skin' ? 'skin' : 'background'
         for (let i = 1; i < e.length; i++) {
           if (e[i]) type === 'skin' ? info += `<option class="${classType}-select" value="${e[i].id}">${e[i].name}</option>` : info += `<div data-${type}-id="${e[i].id}" class="${classType}-select" style="background-color: rgb(251, 114, 153);"><p class="hour-rank-info">${e[i].title}</p><!----></div>`
         }
@@ -275,7 +277,7 @@
             break
           default:
             $('[name="skinBgCode"]').val('')
-            set_skin(id, eval('(' + get_skin_conf(id, skin).skin_config.replace(/\#FF/g, '#') + ')'))
+            set_skin(id, JSON.parse(get_skin_conf(id, skin).skin_config.replace(/#FF/g, '#')))
         }
       }
       function set_skin (id, skin_config) {
@@ -449,8 +451,8 @@ ${inputBgPic}
       document.addEventListener('fullscreenchange', screen)
 
       function get_skin_conf (id, skin) {
-        for (const i in skin) {
-          if (skin[i] && skin[i].id === id) return skin[i]
+        for (const e of skin) {
+          if (e && parseInt(e.id) === parseInt(id)) return e
         }
       }
       function updateSkin (id = 1) {
