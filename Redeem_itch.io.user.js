@@ -77,6 +77,7 @@
     }
   }
   GM_registerMenuCommand('提取所有链接', async () => {
+    log('正在提取链接，请稍候...')
     let gamesLink = []
     for (const e of $('a[href*="itch.io"]:not(".itch-io-game-link-owned"):not([href*="itch.io/b/"]):not([href*="itch.io/c/"])')) {
       const links = await getUrlLink(e)
@@ -128,7 +129,7 @@
     }
     log('正在处理游戏/优惠包链接: ' + url)
     if (/https?:\/\/itch.io\/s\/[\d]+\/.+/.test(url)) {
-      log('正在获取优惠包信息...')
+      log('正在获取优惠包信息...' + url)
       const data = await httpRequest({
         url,
         method: 'get'
