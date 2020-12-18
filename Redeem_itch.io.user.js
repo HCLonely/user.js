@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Redeem itch.io
 // @namespace    Redeem-itch.io
-// @version      1.3.2
+// @version      1.3.3
 // @description  自动激活itch.io key链接和免费itch.io游戏
 // @author       HCLonely
 // @iconURL      https://itch.io/favicon.ico
@@ -209,7 +209,7 @@
     }
   }
   async function purchase (url) {
-    log('正在加载购买页面...')
+    log('正在加载购买页面...' + url)
     const data = await httpRequest({
       url,
       method: 'get'
@@ -228,7 +228,7 @@
     }
   }
   async function download (url, csrf_token) {
-    log('正在请求下载页面...')
+    log('正在请求下载页面...' + url)
     const data = await httpRequest({
       url: url + '/download_url',
       method: 'post',
