@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Redeem itch.io
 // @namespace    Redeem-itch.io
-// @version      1.3.1
+// @version      1.3.2
 // @description  自动激活itch.io key链接和免费itch.io游戏
 // @author       HCLonely
 // @iconURL      https://itch.io/favicon.ico
@@ -167,7 +167,7 @@
     }
     log('当前游戏/优惠包链接: ' + url)
     if (/https?:\/\/itch.io\/s\/[\d]+\/.+/.test(url)) {
-      log('正在获取优惠包信息...')
+      log('正在获取优惠包信息...' + url)
       const data = await httpRequest({
         url,
         method: 'get'
@@ -191,7 +191,7 @@
   }
   async function isOwn (url) {
     log('当前游戏链接: ' + url)
-    log('正在检测游戏是否拥有...')
+    log('正在检测游戏是否拥有...' + url)
     const data = await httpRequest({
       url,
       method: 'get'
