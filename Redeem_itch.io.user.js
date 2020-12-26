@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Redeem itch.io
 // @namespace    Redeem-itch.io
-// @version      1.3.3
+// @version      1.3.4
 // @description  自动激活itch.io key链接和免费itch.io游戏
 // @author       HCLonely
 // @iconURL      https://itch.io/favicon.ico
@@ -127,9 +127,9 @@
       if ($(e).hasClass('itch-io-game-link-owned')) return []
       url = $(e).attr('href')
     }
-    log('正在处理游戏/优惠包链接: ' + url)
+    log('正在处理游戏/优惠包链接: \n' + url)
     if (/https?:\/\/itch.io\/s\/[\d]+\/.+/.test(url)) {
-      log('正在获取优惠包信息...' + url)
+      log('正在获取优惠包信息...\n' + url)
       const data = await httpRequest({
         url,
         method: 'get'
@@ -166,9 +166,9 @@
       if ($(e).hasClass('itch-io-game-link-owned')) return
       url = $(e).attr('href')
     }
-    log('当前游戏/优惠包链接: ' + url)
+    log('当前游戏/优惠包链接: \n' + url)
     if (/https?:\/\/itch.io\/s\/[\d]+\/.+/.test(url)) {
-      log('正在获取优惠包信息...' + url)
+      log('正在获取优惠包信息...\n' + url)
       const data = await httpRequest({
         url,
         method: 'get'
@@ -191,8 +191,8 @@
     }
   }
   async function isOwn (url) {
-    log('当前游戏链接: ' + url)
-    log('正在检测游戏是否拥有...' + url)
+    log('当前游戏链接: \n' + url)
+    log('正在检测游戏是否拥有...\n' + url)
     const data = await httpRequest({
       url,
       method: 'get'
@@ -209,7 +209,7 @@
     }
   }
   async function purchase (url) {
-    log('正在加载购买页面...' + url)
+    log('正在加载购买页面...\n' + url)
     const data = await httpRequest({
       url,
       method: 'get'
@@ -228,7 +228,7 @@
     }
   }
   async function download (url, csrf_token) {
-    log('正在请求下载页面...' + url)
+    log('正在请求下载页面...\n' + url)
     const data = await httpRequest({
       url: url + '/download_url',
       method: 'post',
