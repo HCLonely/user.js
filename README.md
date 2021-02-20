@@ -96,3 +96,9 @@
 ![选择要取关的鉴赏家/游戏](https://cdn.jsdelivr.net/gh/HCLonely/images@latest/post/old/Eu6I1a.webp)
 4. 点击取关或移除按钮。
 ![取关或移除](https://cdn.jsdelivr.net/gh/HCLonely/images@latest/post/old/fVAOkv.webp)
+
+## github1s
+
+### 功能
+
+- 使用 vscode 查看 github.
