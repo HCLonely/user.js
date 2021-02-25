@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Redeem itch.io
 // @namespace    Redeem-itch.io
-// @version      1.3.4
-// @description  自动激活itch.io key链接和免费itch.io游戏
+// @version      1.3.5
+// @description  自动领取itch.io key链接和免费itch.io游戏
 // @author       HCLonely
 // @iconURL      https://itch.io/favicon.ico
 // @include      *://*itch.io/*
@@ -31,13 +31,14 @@
 (function () {
   'use strict'
 
-  const closeWindow = true // 激活完成后自动关闭页面，改为'false'则为不自动关闭
+  const closeWindow = true // 领取完成后自动关闭页面，改为'false'则为不自动关闭
   const url = window.location.href
 
-  /** *************************自动激活itch.io游戏链接***************************/
+  /** *************************自动领取itch.io游戏链接***************************/
   if (/^https?:\/\/[\w\W]{1,}\.itch\.io\/[\w]{1,}(-[\w]{1,}){0,}\/download\/[\w\W]{0,}/i.test(url)) {
     $('button.button').map(function (i, e) {
       if (/link|claim|链接/gim.test($(e).text())) e.click()
+      return e
     })
     if ((/This page is linked|此页面已链接到帐户/gim.test($('div.inner_column').text()) || $('a.button.download_btn[data-upload_id]').length > 0) && closeWindow === 1) closePage()
   }
@@ -51,7 +52,7 @@
 
   /** **********************限时免费游戏包*****************************/
   if (/https?:\/\/itch.io\/s\/[\d]{1,}\/[\w\W]{1,}/.test(url)) {
-    $('.promotion_buy_row .buy_game_btn').after('<button id="redeem-itch-io" class="button" style="font-size:18px;letter-spacing:0.025em;line-height:36px;height:40px;padding:0 20px;margin:0 16px">后台激活</button>')
+    $('.promotion_buy_row .buy_game_btn').after('<button id="redeem-itch-io" class="button" style="font-size:18px;letter-spacing:0.025em;line-height:36px;height:40px;padding:0 20px;margin:0 16px">后台领取</button>')
     $('#redeem-itch-io').click(async () => {
       const gameLink = $('.thumb_link.game_link')
       for (const e of gameLink) {
@@ -60,7 +61,7 @@
     })
   }
 
-  /** **********************后台激活游戏*****************************/
+  /** **********************后台领取游戏*****************************/
   if (['keylol.com', 'www.steamgifts.com', 'www.reddit.com', 'new.isthereanydeal.com'].includes(window.location.hostname)) {
     addRedeemBtn()
     const observer = new MutationObserver(addRedeemBtn)
@@ -73,7 +74,7 @@
   }
   function addRedeemBtn () {
     for (const e of $('a[href*="itch.io"]:not(".redeem-itch-game")')) {
-      $(e).addClass('redeem-itch-game').after(`<a data-itch-href="${$(e).attr('href')}" href="javascript:void(0)" onclick="redeemItchGame(this)" target="_self" style="margin-left:10px !important;">激活</a>`)
+      $(e).addClass('redeem-itch-game').after(`<a data-itch-href="${$(e).attr('href')}" href="javascript:void(0)" onclick="redeemItchGame(this)" target="_self" style="margin-left:10px !important;">领取</a>`)
     }
   }
   GM_registerMenuCommand('提取所有链接', async () => {
@@ -87,7 +88,7 @@
     for (const e of gamesLink) {
       await isOwn(e)
     }
-    log('全部激活完成！', 'success')
+    log('全部领取完成！', 'success')
   })
   unsafeWindow.redeemItchGame = redeemGame
   function closePage () {
@@ -211,14 +212,15 @@
   async function purchase (url) {
     log('正在加载购买页面...\n' + url)
     const data = await httpRequest({
-      url,
+      url: url + '/purchase',
       method: 'get'
     })
     if (data.status === 200) {
       const html = $(data.responseText)
       if (/0\.00/gim.test(html.find('.button_message:first .dollars[itemprop]').text()) || /0\.00/gim.test(html.find('.money_input').attr('placeholder')) || /自己出价|Name your own price/gim.test(html.find('.button_message:first .buy_message').text())) {
         const csrf_token = html.find('[name="csrf_token"]').val()
-        await download(url, csrf_token)
+        const reward_id = html.find('[name="reward_id"]').val()
+        await download(url, csrf_token, reward_id)
       } else {
         log('价格不为 0, 可能活动已结束！', 'error')
       }
@@ -227,12 +229,15 @@
       log(data)
     }
   }
-  async function download (url, csrf_token) {
+  async function download (url, csrf_token, reward_id) {
     log('正在请求下载页面...\n' + url)
     const data = await httpRequest({
       url: url + '/download_url',
       method: 'post',
-      data: { csrf_token },
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+      },
+      data: `csrf_token=${encodeURIComponent(csrf_token)}${reward_id ? ('&reward_id=' + reward_id) : ''}`,
       responseType: 'json'
     })
     if (data.status === 200 && data.response && data.response.url) {
@@ -271,7 +276,7 @@
       const claimBtn = html.find('button.button:contains("Link"),button.button:contains("Claim"),button.button:contains("链接")')
       const form = html.find('form[action*="claim-key"]')
       if (/This page is linked|此页面已链接到帐户/gim.test(html.find('div.inner_column').text()) || html.find('a.button.download_btn[data-upload_id]').length > 0) {
-        log('激活成功！', 'success')
+        log('领取成功！', 'success')
       } else if (form.length > 0) {
         const url = form.attr('action')
         const csrf_token = form.find('input[name="csrf_token"]').val()
@@ -282,7 +287,7 @@
         const csrf_token = form.find('input[name="csrf_token"]').val()
         await claimame(url, csrf_token, url.href)
       } else {
-        log('激活完成，结果未知！', 'success')
+        log('领取完成，结果未知！', 'success')
       }
     } else {
       log('请求失败！', 'error')
@@ -291,7 +296,7 @@
     if (typeof checkItchGame === 'function') checkItchGame()
   }
   async function claimame (e, token, referer) {
-    log('正在激活游戏...')
+    log('正在领取游戏...')
     const url = new URL(e)
     const data = await httpRequest({
       url: url.href,
@@ -320,9 +325,9 @@
     if (data.status === 200 && data.responseText) {
       const html = $(data.responseText)
       if (/This page is linked|此页面已链接到帐户/gim.test(html.find('div.inner_column').text()) || html.find('a.button.download_btn[data-upload_id]').length > 0) {
-        log('激活成功！', 'success')
+        log('领取成功！', 'success')
       } else {
-        log('激活完成，结果未知！', 'success')
+        log('领取完成，结果未知！', 'success')
       }
     } else {
       log('请求失败！', 'error')
