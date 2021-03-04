@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Redeem itch.io
 // @namespace    Redeem-itch.io
-// @version      1.3.5
+// @version      1.3.6
 // @description  自动领取itch.io key链接和免费itch.io游戏
 // @author       HCLonely
 // @iconURL      https://itch.io/favicon.ico
@@ -19,6 +19,7 @@
 // @grant        GM_xmlhttpRequest
 // @grant        GM_registerMenuCommand
 // @grant        GM_openInTab
+// @grant        GM_addStyle
 // @grant        unsafeWindow
 // @run-at       document-end
 // @connect      itch.io
@@ -98,7 +99,10 @@
     if (typeof e !== 'string') return console.log(e)
     Swal[$('.swal2-container').length > 0 ? 'update' : 'fire']({
       title: e,
-      icon: c || 'info'
+      icon: c || 'info',
+      customClass: {
+        title: 'break-all'
+      }
     })
     let color = 'color:'
     switch (c) {
@@ -128,9 +132,9 @@
       if ($(e).hasClass('itch-io-game-link-owned')) return []
       url = $(e).attr('href')
     }
-    log('正在处理游戏/优惠包链接: \n' + url)
+    log('正在处理游戏/优惠包链接: <br/>' + url)
     if (/https?:\/\/itch.io\/s\/[\d]+\/.+/.test(url)) {
-      log('正在获取优惠包信息...\n' + url)
+      log('正在获取优惠包信息...<br/>' + url)
       const data = await httpRequest({
         url,
         method: 'get'
@@ -167,9 +171,9 @@
       if ($(e).hasClass('itch-io-game-link-owned')) return
       url = $(e).attr('href')
     }
-    log('当前游戏/优惠包链接: \n' + url)
+    log('当前游戏/优惠包链接: <br/>' + url)
     if (/https?:\/\/itch.io\/s\/[\d]+\/.+/.test(url)) {
-      log('正在获取优惠包信息...\n' + url)
+      log('正在获取优惠包信息...<br/>' + url)
       const data = await httpRequest({
         url,
         method: 'get'
@@ -192,8 +196,8 @@
     }
   }
   async function isOwn (url) {
-    log('当前游戏链接: \n' + url)
-    log('正在检测游戏是否拥有...\n' + url)
+    log('当前游戏链接: <br/>' + url)
+    log('正在检测游戏是否拥有...<br/>' + url)
     const data = await httpRequest({
       url,
       method: 'get'
@@ -210,7 +214,7 @@
     }
   }
   async function purchase (url) {
-    log('正在加载购买页面...\n' + url)
+    log('正在加载购买页面...<br/>' + url)
     const data = await httpRequest({
       url: url + '/purchase',
       method: 'get'
@@ -230,7 +234,7 @@
     }
   }
   async function download (url, csrf_token, reward_id) {
-    log('正在请求下载页面...\n' + url)
+    log('正在请求下载页面...<br/>' + url)
     const data = await httpRequest({
       url: url + '/download_url',
       method: 'post',
@@ -354,4 +358,5 @@
       }
     })
   }
+  GM_addStyle('.swal2-title.break-all{word-wrap:break-word; word-break:break-all;}')
 })()
