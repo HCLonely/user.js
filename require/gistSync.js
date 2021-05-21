@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name               gistSync
 // @namespace          gistSync
-// @version            1.0.0
+// @version            1.0.1
 // @description        使用gist进行数据同步
 // @author             HCLonely
 // @license            MIT
@@ -108,6 +108,8 @@ function setting () {
       Swal.fire({
         icon: 'success',
         title: '测试成功！'
+      }).then(() => {
+        setting()
       })
     } else {
       Swal.fire({
@@ -189,4 +191,4 @@ function setting () {
     })
   })
 }
-GM_registerMenuCommand('同步设置', setting)
+GM_registerMenuCommand('数据同步设置', setting)
