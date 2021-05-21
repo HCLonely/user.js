@@ -43,6 +43,13 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 // ==/UserScript==
 
 /* global Swal,TM_request, GM_setValue, GM_getValue, GM_listValues */
+
+/*
+const { TOKEN, GIST_ID, FILE_NAME, AUTO_SYNC } = GM_getValue('gistConf') || { TOKEN: '', GIST_ID: '', FILE_NAME: '' }
+if (TOKEN && GIST_ID && FILE_NAME && AUTO_SYNC){
+
+}
+*/
 function setGistData(token, gistId, fileName, content) {
   var data = JSON.stringify({
     files: _defineProperty({}, fileName, {
@@ -90,7 +97,7 @@ function getGistData(token, gistId, fileName) {
     if (response.status === 200) {
       var _response$response2, _response$response2$f, _response$response2$f2;
 
-      return JSON.parse((_response$response2 = response.response) === null || _response$response2 === void 0 ? void 0 : (_response$response2$f = _response$response2.files) === null || _response$response2$f === void 0 ? void 0 : (_response$response2$f2 = _response$response2$f[fileName]) === null || _response$response2$f2 === void 0 ? void 0 : _response$response2$f2.content);
+      return JSON.parse(((_response$response2 = response.response) === null || _response$response2 === void 0 ? void 0 : (_response$response2$f = _response$response2.files) === null || _response$response2$f === void 0 ? void 0 : (_response$response2$f2 = _response$response2$f[fileName]) === null || _response$response2$f2 === void 0 ? void 0 : _response$response2$f2.content) || null);
     } else {
       console.error(response);
       return false;
@@ -113,7 +120,8 @@ function setting() {
 
   Swal.fire({
     title: 'Gist 设置',
-    html: '<p>Github Token<input id="github-token" class="swal2-input" placeholder="Github Token" value="' + TOKEN + '"></p>' + '<p>Gist ID<input id="gist-id" class="swal2-input" placeholder="Gist ID" value="' + GIST_ID + '"></p>' + '<p>文件名<input id="file-name" class="swal2-input" placeholder="文件名" value="' + FILE_NAME + '"></p>' + '<p>' + '<button id="upload-data" type="button" class="swal2-confirm swal2-styled" aria-label="" style="display: inline-block;">同步到Gist</button>' + '<button id="download-data" type="button" class="swal2-confirm swal2-styled" aria-label="" style="display: inline-block;">从Gist同步</button>' + '</p>',
+    html: '<p>Github Token<input id="github-token" class="swal2-input" placeholder="Github Token" value="' + TOKEN + '"></p>' + '<p>Gist ID<input id="gist-id" class="swal2-input" placeholder="Gist ID" value="' + GIST_ID + '"></p>' + '<p>文件名<input id="file-name" class="swal2-input" placeholder="文件名" value="' + FILE_NAME + '"></p>' + // '<p><input id="auto-sync" type="checkbox" ' + (AUTO_SYNC ? 'checked="checked"' : '') + '><span class="swal2-label">自动同步</span></p>' +
+    '<p>' + '<button id="upload-data" type="button" class="swal2-confirm swal2-styled" aria-label="" style="display: inline-block;">同步到Gist</button>' + '<button id="download-data" type="button" class="swal2-confirm swal2-styled" aria-label="" style="display: inline-block;">从Gist同步</button>' + '</p>',
     focusConfirm: false,
     showLoaderOnConfirm: true,
     preConfirm: function () {
@@ -125,11 +133,14 @@ function setting() {
               case 0:
                 token = document.getElementById('github-token').value;
                 gistId = document.getElementById('gist-id').value;
-                fileName = document.getElementById('file-name').value;
+                fileName = document.getElementById('file-name').value; // const autoSync = document.getElementById('auto-sync').checked
+
                 GM_setValue('gistConf', {
                   TOKEN: token,
                   GIST_ID: gistId,
                   FILE_NAME: fileName
+                  /* , AUTO_SYNC: autoSync */
+
                 });
                 _context.next = 6;
                 return getGistData(token, gistId, fileName);
@@ -167,7 +178,7 @@ function setting() {
       }).then(function () {
         setting();
       });
-    } else {
+    } else if (value !== undefined) {
       Swal.fire({
         icon: 'error',
         title: '测试失败！'
