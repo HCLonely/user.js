@@ -6,7 +6,8 @@
   "scripts": {
     "test": "standard Alienwarearena_Daily_Quest_Helper.user.js --fix",
     "itch": "standard Redeem_itch.io.user.js --fix",
-    "blbl": "standard bilive_skin_custom.user.js --fix"
+    "blbl": "standard bilive_skin_custom.user.js --fix",
+    "babel:gist": "babel require/gistSync.js -o require/gistSync.user.js"
   },
   "repository": {
     "type": "git",
@@ -19,6 +20,10 @@
   },
   "homepage": "https://github.com/HCLonely/user.js#readme",
   "devDependencies": {
+    "@babel/cli": "^7.14.3",
+    "@babel/core": "^7.14.3",
+    "@babel/plugin-transform-runtime": "^7.14.3",
+    "@babel/preset-env": "^7.14.2",
     "standard": "^14.3.4"
   },
   "standard": {
@@ -34,6 +39,9 @@
       "GM_setClipboard",
       "unsafeWindow",
       "Swal"
+    ],
+    "ignore": [
+      "*.user.js"
     ]
   }
 }
