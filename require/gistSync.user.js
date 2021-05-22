@@ -23,7 +23,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 // ==UserScript==
 // @name               gistSync
 // @namespace          gistSync
-// @version            1.0.1
+// @version            1.0.2
 // @description        使用gist进行数据同步
 // @author             HCLonely
 // @license            MIT
@@ -124,6 +124,7 @@ function setting() {
     '<p>' + '<button id="upload-data" type="button" class="swal2-confirm swal2-styled" aria-label="" style="display: inline-block;">同步到Gist</button>' + '<button id="download-data" type="button" class="swal2-confirm swal2-styled" aria-label="" style="display: inline-block;">从Gist同步</button>' + '</p>',
     focusConfirm: false,
     showLoaderOnConfirm: true,
+    footer: '<a href="https://github.com/HCLonely/IG-Helper/blob/master/README.md" target-"_blank" class>帮助？</a>',
     preConfirm: function () {
       var _preConfirm = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
         var token, gistId, fileName;

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name               gistSync
 // @namespace          gistSync
-// @version            1.0.1
+// @version            1.0.2
 // @description        使用gist进行数据同步
 // @author             HCLonely
 // @license            MIT
@@ -99,6 +99,7 @@ function setting () {
       '</p>',
     focusConfirm: false,
     showLoaderOnConfirm: true,
+    footer: '<a href="https://github.com/HCLonely/IG-Helper/blob/master/README.md" target-"_blank" class>帮助？</a>',
     preConfirm: async () => {
       const token = document.getElementById('github-token').value
       const gistId = document.getElementById('gist-id').value
