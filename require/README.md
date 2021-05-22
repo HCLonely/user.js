@@ -18,7 +18,7 @@
 // @require            https://cdn.jsdelivr.net/npm/sweetalert2@9
 // @require            https://cdn.jsdelivr.net/npm/promise-polyfill@8.1.3/dist/polyfill.min.js
 // @require            https://greasyfork.org/scripts/418102-tm-request/code/TM_request.js?version=902218
-// @require            https://greasyfork.org/scripts/426803-gistsync/code/gistSync.js?version=933155
+// @require            https://greasyfork.org/scripts/426803-gistsync/code/gistSync.js?version=933451
 // @connect            api.github.com
 ```
 
