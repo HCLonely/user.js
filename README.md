@@ -102,3 +102,7 @@
 ### 功能
 
 - 使用 vscode 查看 github.
+
+## require
+
+> 库类脚本，使用方法详见[https://github.com/HCLonely/user.js/tree/master/require](https://github.com/HCLonely/user.js/tree/master/require)
