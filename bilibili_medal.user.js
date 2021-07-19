@@ -55,7 +55,7 @@
     const formData = new FormData()
     formData.append('bubble', 0)
     formData.append('msg', msgText[Math.floor((Math.random() * msgText.length))])
-    formData.append('color', 5566168)
+    formData.append('color', 65532)
     formData.append('mode', 1)
     formData.append('fontsize', 25)
     formData.append('rnd', Math.floor(new Date().getTime() / 1000))
