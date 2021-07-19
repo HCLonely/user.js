@@ -103,6 +103,18 @@
 
 - 使用 vscode 查看 github.
 
+## bilibili medal
+
+### 功能
+
+- 保持 bilibili 直播粉丝勋章常亮。
+
+### 使用方法
+
+1. 登录[bilibili](https://www.bilibili.com/)
+2. 打开[佩戴中心](https://link.bilibili.com/p/center/index#/user-center/wearing-center/my-medal)
+3. 点击“佩戴中心”旁边的`开始签到`按钮
+
 ## require
 
 > 库类脚本，使用方法详见[https://github.com/HCLonely/user.js/tree/master/require](https://github.com/HCLonely/user.js/tree/master/require)
