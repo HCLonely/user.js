@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         bilibili勋章常亮
 // @namespace    bilibili-medal
-// @version      0.2
+// @version      0.3
 // @description  保持bilibili直播粉丝勋章常亮
 // @author       HCLonely
 // @include      https://link.bilibili.com/p/center/index
@@ -9,6 +9,9 @@
 // @require      https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js
 // @require      https://cdn.jsdelivr.net/npm/js-cookie@2.2.1/src/js.cookie.min.js
 // @require      https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.all.min.js
+// @homepage     https://blog.hclonely.com/posts/578f9be7/
+// @supportURL   https://blog.hclonely.com/posts/578f9be7/
+// @updateURL    https://github.com/HCLonely/user.js/raw/master/bilive_skin_custom.user.js
 // @connect      api.live.bilibili.com
 // @grant        GM_xmlhttpRequest
 // @grant        GM_getValue
@@ -19,6 +22,7 @@
 /* global $, Cookies, FormData */
 (function () {
   'use strict'
+  const blackList = GM_getValue('blackList') || []
   const whiteList = GM_getValue('whiteList') || []
   if (window.location.href === 'https://link.bilibili.com/p/center/index#/user-center/wearing-center/my-medal') {
     const find = setInterval(async () => {
@@ -29,13 +33,13 @@
           $('.text-ctnr').remove()
           $('table.center-grid>thead>tr').html('<td data-v-3895bb76="" width="160" style="padding-left: 60px;">主播昵称</td><td data-v-3895bb76="" width="160">直播间</td><td data-v-3895bb76="" width="120">签到结果</td>')
           $('table.center-grid>tbody').html('')
-          const allRooms = await getroomsId()
+          const allRooms = whiteList.length > 0 ? whiteList : await getroomsId()
           for (let i = 0; i < allRooms.length; i++) {
             if (allRooms[i][1] < 100000) {
               allRooms[i][1] = await toLongId(allRooms[i][1])
             }
           }
-          const rooms = allRooms.filter(e => !whiteList.includes(e[1]))
+          const rooms = allRooms.filter(e => !blackList.includes(e[1]))
           let i = 0
           $('nav.tabnav').append(`<section class="tabnav-item"><div class="tabnav-content">签到进度：${rooms.length} / <span id="sign-progress" class="tabnav-tip plain">${i}</span></div></section>`)
           for (const room of rooms) {
@@ -50,7 +54,7 @@
     }, 1000)
   }
   const msgText = ['(⌒▽⌒)', '（￣▽￣）', '(=・ω・=)', '(｀・ω・´)', '(〜￣△￣)〜', '(･∀･)', '(°∀°)ﾉ', '(￣3￣)', '╮(￣▽￣)╭', '_(:3」∠)_', '( ´_ゝ｀)', '←_←', '→_→', '(<_<)', '(>_>)', '(;¬_¬)', '("▔□▔)/', '(ﾟДﾟ≡ﾟдﾟ)!?', 'Σ(ﾟдﾟ;)', 'Σ( ￣□￣||)', '(´；ω；`)', '（/TДT)/', '(^・ω・^ )', '(｡･ω･｡)', '(●￣(ｴ)￣●)', 'ε=ε=(ノ≧∇≦)ノ', '(´･_･`)', '(-_-#)', '（￣へ￣）', '(￣ε(#￣) Σ', 'ヽ(`Д´)ﾉ', '(╯°口°)╯(┴—┴', '←◡←', '( ♥д♥)', 'Σ>―(〃°ω°〃)♡→', '⁄(⁄ ⁄•⁄ω⁄•⁄ ⁄)⁄', '･*･:≡(　ε:)']
-  function sendBiliMsg ([name, roomid]) {
+  function sendBiliMsg([name, roomid]) {
     const csrf = Cookies.get('bili_jct')
     const formData = new FormData()
     formData.append('bubble', 0)
@@ -89,7 +93,7 @@
       })
     })
   }
-  function getroomsId () {
+  function getroomsId() {
     return new Promise(resolve => {
       GM_xmlhttpRequest({
         url: 'https://api.live.bilibili.com/fans_medal/v5/live_fans_medal/iApiMedal?page=1&pageSize=' + $('.tabnav-tip.plain').text(),
@@ -97,7 +101,7 @@
         responseType: 'json',
         onload: data => {
           if (data.response.code === 0) {
-            resolve(data.response.data.fansMedalList.filter(e => e.roomid && e.today_intimacy < 100 && !whiteList.includes(e.roomid)).map(e => [e.uname, e.roomid]).filter(e => e[1]))
+            resolve(data.response.data.fansMedalList.filter(e => e.roomid && e.today_intimacy < 100 && !blackList.includes(e.roomid)).map(e => [e.uname, e.roomid]).filter(e => e[1]))
           } else {
             resolve(false)
           }
@@ -108,14 +112,14 @@
       })
     })
   }
-  function delay (time) {
+  function delay(time) {
     return new Promise(resolve => {
       setTimeout(() => {
         resolve()
       }, time)
     })
   }
-  async function toLongId (id) {
+  async function toLongId(id) {
     const cache = GM_getValue('ids') || {}
     if (cache[id]) {
       return cache[id]
@@ -141,7 +145,27 @@
       })
     })
   }
-  GM_registerMenuCommand('设置白名单',()=>{
+  GM_registerMenuCommand('设置黑名单', () => {
+    const blackList = GM_getValue('blackList') || []
+    Swal.fire({
+      title: '设置黑名单',
+      input: 'textarea',
+      inputValue: blackList.join(','),
+      showCancelButton: true,
+      confirmButtonText: '保存',
+      cancelButtonText: '取消'
+    }).then(({ value }) => {
+      if (value) {
+        GM_setValue('blackList', value.split(',').map(e => parseInt(e)))
+        Swal.fire(
+          '保存成功',
+          '',
+          'success'
+        )
+      }
+    })
+  })
+  GM_registerMenuCommand('设置白名单', () => {
     const whiteList = GM_getValue('whiteList') || []
     Swal.fire({
       title: '设置白名单',
@@ -150,9 +174,9 @@
       showCancelButton: true,
       confirmButtonText: '保存',
       cancelButtonText: '取消'
-    }).then(({value}) => {
-      if(value){
-        GM_setValue('whiteList', value.split(','))
+    }).then(({ value }) => {
+      if (value) {
+        GM_setValue('whiteList', value.split(',').map(e => parseInt(e)))
         Swal.fire(
           '保存成功',
           '',

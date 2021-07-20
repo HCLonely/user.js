@@ -1,742 +1,281 @@
 // ==UserScript==
 // @name         bilibili直播自定义皮肤背景
-// @namespace    bilibili- ( ゜- ゜)つロ 乾杯~
-// @version      1.1.4
+// @namespace    http://tampermonkey.net/
+// @version      2.0.0
 // @description  自定义bilibili直播的皮肤和背景，仅自己可见！
 // @author       HCLonely
 // @include      /^https?:\/\/live.bilibili.com\/(blanc\/)?[\d]+/
-// @grant        GM_addStyle
+// @run-at       document-end
+// @connect      api.live.bilibili.com
 // @grant        GM_xmlhttpRequest
-// @grant        GM_setClipboard
-// @grant        GM_setValue
+// @grant        GM_addStyle
 // @grant        GM_getValue
-// @grant        GM_openInTab
-// @grant        GM_log
-// @grant        GM_registerMenuCommand
-// @require      https://greasyfork.org/scripts/388035-jquery/code/$jQuery.js?version=736625
+// @grant        GM_setValue
+// @require      https://cdn.jsdelivr.net/npm/jquery@3.4.0/dist/jquery.min.js
 // @homepage     https://blog.hclonely.com/posts/578f9be7/
 // @supportURL   https://blog.hclonely.com/posts/578f9be7/
 // @updateURL    https://github.com/HCLonely/user.js/raw/master/bilive_skin_custom.user.js
-// @run-at       document-end
-// @connect      *
-// @compatible   chrome 没有测试其他浏览器的兼容性
 // ==/UserScript==
 
-/* global $jQuery */
-/* esline-disable camel-case */
-(function ($jq) {
-  window.onload = function () {
-    'use strict'
+(function () {
+  'use strict';
 
-    if ($jq('main.app-content').length < 1) return
+  const skinConfig = GM_getValue('skinConfig') || [{ id: 0, skin_name: '默认' }]
+  let selectedSkin = GM_getValue('selectedSkin') || 0
+  let customedBgimg = GM_getValue('customedBgimg') || 0
+  if (selectedSkin !== 0 && skinConfig[selectedSkin]) {
+    generateStyle(skinConfig[selectedSkin].skin_config)
+  }
+  if (customedBgimg) {
+    changeBackgroundImage(customedBgimg)
+  }
 
-    const backgroundImage = ['background', { id: 1, title: '纯色背景' }, { id: 2, title: '自定义背景' }, { id: 3, title: '默认背景①', url: 'http://static.hdslb.com/live-static/images/bg/1.jpg' }, { id: 4, title: '默认背景②', url: 'http://static.hdslb.com/live-static/images/bg/2.jpg' }, { id: 5, title: '默认背景③', url: 'http://static.hdslb.com/live-static/images/bg/3.jpg' }, { id: 6, title: '默认背景④', url: 'http://static.hdslb.com/live-static/images/bg/4.jpg' }, { id: 7, title: '默认背景⑤', url: 'http://static.hdslb.com/live-static/images/bg/5.jpg' }, { id: 8, title: '默认背景⑥', url: 'http://static.hdslb.com/live-static/images/bg/6.jpg' }]
-    const skinArr = ['skin', { id: 'default', name: '默认' }, { id: 'transparent', name: '透明' }, { id: 'customize', name: '自定义' }]
+  const init = setInterval(() => {
+    if ($('.icon-left-part').length > 0) {
+      clearInterval(init)
+      $('.icon-left-part').after(`<span id="skin-setting-icon" data-v-4f7fad56="" class="icon-item danmu-block-icon live-skin-main-text skin-custom"><svg data-v-4f7fad56="" t="1626699361302" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1333" width="40" height="40"><title data-v-4f7fad56="">自定义皮肤</title><path d="M940.672 267.904l-138.304-150.272a89.216 89.216 0 0 0-65.92-29.632h-34.88c-31.36 0-59.52 16.512-77.248 45.376-23.168 36.992-65.6 59.072-113.664 59.072-45.888 0-88.96-22.144-112.896-57.92a84.736 84.736 0 0 0-75.328-46.528h-30.208c-29.568 0-52.992 10.176-69.76 30.208L83.2 268.16l-0.128 0.128A98.24 98.24 0 0 0 56.96 334.976a94.08 94.08 0 0 0 26.304 66.048l80.768 87.68c16.128 17.536 39.424 27.968 62.208 27.968h2.432v347.008c0 39.936 31.232 72.384 69.504 72.384h427.52c38.336 0 69.504-32.448 69.504-72.384V516.672h2.496c23.424 0 45.504-9.984 62.144-28.032l81.088-88c16.768-18.176 26.048-41.984 25.984-66.688a94.08 94.08 0 0 0-26.304-66.048z m-52.672 83.904l-81.024 88.064c-4.416 4.8-8 4.8-9.216 4.8a14.784 14.784 0 0 1-9.216-4.8 36.992 36.992 0 0 0-26.88-11.648 38.464 38.464 0 0 0-38.4 38.592V864H300.8V466.816c0-21.248-17.152-38.464-38.4-38.592a37.056 37.056 0 0 0-26.88 11.712 14.848 14.848 0 0 1-9.216 4.736 14.912 14.912 0 0 1-9.216-4.8L136 351.872l-0.832-0.832c-8.512-8.704-8.128-24.192 0.768-33.92l139.776-150.272 1.152-1.28 1.024-1.28c1.28-1.6 3.968-4.224 14.336-4.224h30.208a12.672 12.672 0 0 1 11.2 7.36 36.928 36.928 0 0 0 2.432 4.416l0.128 0.128A200.32 200.32 0 0 0 408.96 238.848a213.44 213.44 0 0 0 101.632 25.6c35.84 0 70.976-8.576 101.44-24.96a194.432 194.432 0 0 0 73.344-68.096l0.128-0.256c6.848-11.136 13.76-11.136 16-11.136h34.944a17.024 17.024 0 0 1 12.48 6.016l139.008 151.04 0.768 0.768c8.576 8.704 8.256 24.32-0.768 33.984zM398.016 443.008h120c5.312 0 8 2.688 8 8v153.984c0 5.312-2.688 8-8 8H398.016c-5.376 0-8-2.688-8-8V451.008c0-5.312 2.624-8 8-8z" p-id="1334"></path></svg></span>`)
 
-    GM_setValue('skin', null)
-    const skin = GM_getValue('skinCache') || skinArr
-
-    start()
-    function start () {
-      $jq('body').append(`
-<div name="sideBarLeft" class="side-bar-left">
-    <div name="settingDiv" class="awarding-panel border-box a-scale-in-ease p-absolute awarding-panel-setting" style="display: none;">
-        <h2 name="settingH2" class="title"></h2>
-        <div name="settingInfoDiv" class="info-section p-relative" data-tag=""></div>
-        <div name="customizeDiv" class="info-section p-relative color-info" style="display: none;">
-            <h2 class="title">请输入颜色代码：</h2>
-            <div class="code-div color-code-div">
-                <input type="text" name="colorCode" placeholder="请输入颜色代码(☆▽☆)" title="请输入颜色代码(☆▽☆)" maxlength="10" class="v-middle-color">
-                <button id="colorEnter" class="color-button">确认</button>
-            </div>
-        </div>
-        <div name="customizeDiv" class="info-section p-relative url-info" style="display: none;">
-            <h2 class="title">请输入自定义图片网址：</h2>
-            <div class="code-div url-info-div">
-                <input type="text" name="urlCode" placeholder="请输入图片网址(☆▽☆)" title="请输入图片网址(☆▽☆)" maxlength="100" class="v-middle-color">
-                <button id="urlEnter" class="color-button">确认</button>
-            </div>
-        </div>
-        <div name="customizeDiv" class="info-section p-relative skin-info" style="display: black;">
-            <h2 class="title"><div class="code-div skin-code-div live-top-div">直播区顶部：
-                <input id="headInfoBgPic" disabled="disabled" type="text" name="skinBgCode" placeholder="请输入背景图片网址或颜色代码，留空为默认(☆▽☆)" title="请输入背景图片网址或颜色代码，留空为默认(☆▽☆)" maxlength="100" class="v-middle-color">
-            </div></h2>
-            <h2 class="title"><div class="code-div skin-code-div live-bottom-div">直播区底部：
-                <input id="giftControlBgPic" disabled="disabled" type="text" name="skinBgCode" placeholder="请输入背景图片网址或颜色代码，留空为默认(☆▽☆)" title="请输入背景图片网址或颜色代码，留空为默认(☆▽☆)" maxlength="100" class="v-middle-color">
-            </div></h2>
-            <h2 class="title"><div class="code-div skin-code-div chat-top-div">聊天区顶部：
-                <input id="rankListBgPic" disabled="disabled" type="text" name="skinBgCode" placeholder="请输入背景图片网址或颜色代码，留空为默认(☆▽☆)" title="请输入背景图片网址或颜色代码，留空为默认(☆▽☆)" maxlength="100" class="v-middle-color">
-            </div></h2>
-            <h2 class="title"><div class="code-div skin-code-div chat-middle-div">聊天区中部：
-                <input id="danmakuBgPic" disabled="disabled" type="text" name="skinBgCode" placeholder="请输入背景图片网址或颜色代码，留空为默认(☆▽☆)" title="请输入背景图片网址或颜色代码，留空为默认(☆▽☆)" maxlength="100" class="v-middle-color">
-            </div></h2>
-            <h2 class="title"><div class="code-div skin-code-div chat-bottom-div">聊天区底部：
-                <input id="inputBgPic" disabled="disabled" type="text" name="skinBgCode" placeholder="请输入背景图片网址或颜色代码，留空为默认(☆▽☆)" title="请输入背景图片网址或颜色代码，留空为默认(☆▽☆)" maxlength="100" class="v-middle-color">
-            </div></h2>
-            <h2 class="title"><div class="code-div skin-code-div txt-color-div">字体颜色①：
-                <input id="mainText" disabled="disabled" type="text" name="skinBgCode" placeholder="请输入字体颜色代码，留空为默认(☆▽☆)" title="请输入字体颜色代码，留空为默认(☆▽☆)" maxlength="100" class="v-middle-color">
-            </div></h2>
-            <h2 class="title"><div class="code-div skin-code-div txt-color-div">字体颜色②：
-                <input id="normalText" disabled="disabled" type="text" name="skinBgCode" placeholder="请输入字体颜色代码，留空为默认(☆▽☆)" title="请输入字体颜色代码，留空为默认(☆▽☆)" maxlength="100" class="v-middle-color">
-            </div></h2>
-            <h2 class="title"><div class="code-div skin-code-div txt-color-div">背景颜色①：
-                <input id="highlightContent" disabled="disabled" type="text" name="skinBgCode" placeholder="请输入背景颜色代码，留空为默认(☆▽☆)" title="请输入背景颜色代码，留空为默认(☆▽☆)" maxlength="100" class="v-middle-color">
-            </div></h2>
-            <h2 class="title"><div class="code-div skin-code-div txt-color-div">背景颜色②：
-                <input id="border" disabled="disabled" type="text" name="skinBgCode" placeholder="请输入背景颜色代码，留空为默认(☆▽☆)" title="请输入背景颜色代码，留空为默认(☆▽☆)" maxlength="100" class="v-middle-color">
-            </div></h2>
-            <h2 class="title" align="center" style='margin-top:10px;'><!--<button class="live-skin-highlight-button-bg get-config-button"><span class="txt save-txt">获取保存的配置</span></button>--><button class="live-skin-highlight-button-bg pre-button" disabled="disabled"><span class="txt save-txt">预览</span></h2>
-        </div>
-        <button name="closeBtn" class="close-btn p-absolute pointer ts-dot-4"><i class="icon-font icon-close"></i>
-        </button>
-        <div class="bottom-div">
-            <button class="live-skin-highlight-button-bg save-button"><span class="txt save-txt">保存</span>
-            </button>
-        </div>
-    </div>
-    <div name="backgroundDiv" role="button" data-upgrade-intro="Background" class="side-bar-btn">
-        <div class="side-bar-btn-cntr side-bar-btn-div">
-<span class="side-bar-icon dp-i-block svg-icon svg-icon-span" style="background-position: 0px -54em;"></span>
-            <p class="size-bar-text size-bar-text-p color-#0080c6" style="color: rgb(0, 128, 198);">更换背景</p>
-        </div>
-    </div>
-    <div name="skinDiv" role="button" data-upgrade-intro="Skin" class="side-bar-btn">
-        <div class="side-bar-btn-cntr side-bar-btn-div">
-<span class="side-bar-icon dp-i-block svg-icon svg-icon-span" style="background-position: 0px -69em;"></span>
-            <p class="size-bar-text size-bar-text-p color-#0080c6" style="color: rgb(0, 128, 198);">更换皮肤</p>
-        </div>
-    </div>
-    <div name="updateDiv" role="button" data-upgrade-intro="Update" class="side-bar-btn">
-        <div class="side-bar-btn-cntr side-bar-btn-div">
-<span class="update" style="background-color: red;border-radius: 50%;height: 5px;width: 5px;display: none;position: absolute;"></span>
-<span class="side-bar-icon dp-i-block svg-icon svg-icon-span" style="background-position: 0px -91em;"></span>
-            <p class="size-bar-text size-bar-text-p color-#0080c6" style="color: rgb(0, 128, 198);">更新缓存</p>
-        </div>
-    </div>
-    <div name="hideDiv" role="button" data-upgrade-intro="Hide" class="side-bar-btn">
-        <div class="side-bar-btn-cntr side-bar-btn-div">
-<span class="side-bar-icon dp-i-block svg-icon svg-icon-span" style="background-position: 0px -62em;"></span>
-            <p class="size-bar-text size-bar-text-p color-#0080c6" style="color: rgb(0, 128, 198);">隐藏</p>
-        </div>
-    </div>
-</div>
-`)
-      if (GM_getValue('skinCache')) {
-        GM_xmlhttpRequest({
-          method: 'GET',
-          url: `https://api.live.bilibili.com/room/v1/Skin/info?skin_platform=web&skin_version=1&id=${GM_getValue('skinCache').length - 3}`,
-          responseType: 'json',
-          onload: data => {
-            if (data.status === 200 && data.response.code === 0) {
-              if (Object.prototype.toString.call(data.response.data) === '[object Object]' && data.response.data.id + 4 > skin.length) {
-                $jq('span.update').css('display', 'inline-block')
-                $jq('span.update').parent().attr('title', '有新皮肤啦')
-              }
-            }
+      $('.skin-custom').click(() => {
+        if ($('#skin-setting-div').length > 0) {
+          $('#skin-setting-div').hide('fast', () => { $('#skin-setting-div').remove() })
+        } else {
+          let html = ''
+          for (const config of skinConfig) {
+            html += `<li data-v-4f107cb5="" class="item" data-id="${config.id}">
+      <span data-v-4f107cb5="" class="cb-icon svg-icon v-middle p-absolute${config.id === selectedSkin ? ' checkbox-selected' : ' checkbox-default'}"></span>
+      <input data-v-4f107cb5="" id="skin-${config.id}" type="radio" name="skin" class="pointer v-middle">
+      <label data-v-4f107cb5="" for="skin-${config.id}" class="pointer dp-i-block v-middle" style="max-width: 90%;">${config.skin_name}</label>
+      </li>`
           }
-        })
-      } else {
-        $jq('span.update').css('display', 'inline-block')
-        $jq('span.update').parent().attr('title', '首次使用请先更新缓存')
-      }
-
-      const sideBarLeft = $jq('[name="sideBarLeft"]')
-      const settingDiv = $jq('[name="settingDiv"]')
-      const settingH2 = $jq('[name="settingH2"]')
-      const settingInfoDiv = $jq('[name="settingInfoDiv"]')
-      const closeBtn = $jq('[name="closeBtn"]')
-      const backgroundDiv = $jq('[name="backgroundDiv"]')
-      const hideDiv = $jq('[name="hideDiv"]')
-      const skinDiv = $jq('[name="skinDiv"]')
-      const updateDiv = $jq('[name="updateDiv"]')
-      const saveBtn = $jq('.save-button')
-      const preBtn = $jq('.pre-button')
-      const skinInfo = $jq('.skin-info')
-      const biInfo = set_info(backgroundImage)
-      const skInfo = set_info(skin)
-
-      closeBtn.click(() => {
-        settingDiv.hide()
-      })
-      backgroundDiv.click(() => {
-        if (settingInfoDiv.attr('data-tag') === 'bg' && settingDiv.css('display') === 'none') {
-          settingDiv.show()
-        } else if (settingInfoDiv.attr('data-tag') === 'bg') {
-          settingDiv.hide()
-        } else {
-          settingInfoDiv.attr('data-tag', 'bg')
-          settingH2.text('更换背景')
-          settingInfoDiv.html(biInfo)
-          $jq('.background-select').click(function () {
-            set_background($jq(this).attr('data-background-id'))
-          })
-          skinInfo.hide()
-          settingDiv.show()
-        }
-      })
-      skinDiv.click(() => {
-        if (settingInfoDiv.attr('data-tag') === 'skin' && settingDiv.css('display') === 'none') {
-          settingDiv.show()
-          settingDiv.show()
-        } else if (settingInfoDiv.attr('data-tag') === 'skin') {
-          settingDiv.show()
-          settingDiv.hide()
-        } else {
-          settingInfoDiv.attr('data-tag', 'skin')
-          settingH2.text('更换皮肤')
-          settingInfoDiv.html('<select class="skin">' + skInfo + '</select>' + (GM_getValue('skinCache') ? '' : '首次使用请先<a id="updateA" href="javascript:void(0)" target="_self">更新</a>皮肤缓存'))
-          $jq('.color-info').hide()
-          $jq('.url-info').hide()
-          $jq('select.skin').change(function () {
-            get_skin($jq(this).find('option:selected').val())
-          })
-          $jq('#updateA').click(() => { updateSkin() })
-          skinInfo.show()
-          settingDiv.show()
-        }
-      })
-      updateDiv.click(() => { updateSkin() })
-      hideDiv.click(() => {
-        sideBarLeft.hide()
-      })
-      saveBtn.click(() => {
-        const cache = get_setting()
-        GM_setValue('mySetting', cache)
-        msg('保存成功！')
-      })
-      preBtn.click(function () {
-        const skin_config = {}
-        $jq.makeArray($jq('input[name="skinBgCode"]')).map(e => {
-          skin_config[$jq(e).attr('id')] = $jq(e).val()
-        })
-        set_skin('customize', skin_config)
-      })
-
-      $('head').bind('DOMNodeInserted', () => {
-        const prevSetting = GM_getValue('mySetting') || []
-        const nowSetting = get_setting()
-        if ($('style[id^=skin-css-').length > 1) $(`style[id^=skin-css-]:not([id=skin-css-${prevSetting[1].id}])`).remove()
-        else if (($jq('div.room-bg[role="img"]').length > 0 ? prevSetting[0] !== nowSetting[0] : false) || prevSetting[1].id !== nowSetting[1].id) set_all(prevSetting)
-      })
-      sideBarLeft.click(() => {
-        $('head').unbind('DOMNodeInserted')
-      })
-
-      function set_info (e) {
-        let info = ''
-        const type = e[0]
-        const classType = e[0] === 'skin' ? 'skin' : 'background'
-        for (let i = 1; i < e.length; i++) {
-          if (e[i]) type === 'skin' ? info += `<option class="${classType}-select" value="${e[i].id}">${e[i].name}</option>` : info += `<div data-${type}-id="${e[i].id}" class="${classType}-select" style="background-color: rgb(251, 114, 153);"><p class="hour-rank-info">${e[i].title}</p><!----></div>`
-        }
-        return info
-      }
-      function set_background (id) {
-        switch (id) {
-          case '1':
-            $jq('div.url-info').hide()
-            $jq('div.color-info').show()
-            $jq('#colorEnter').click(() => {
-              if ($jq('div.room-bg[role="img"]').length > 0) $jq('div.room-bg[role="img"]').attr('style', `background-color: ${$jq('input[name="colorCode"]').val()};`)
-            })
-            break
-          case '2':
-            $jq('div.color-info').hide()
-            $jq('div.url-info').show()
-            $jq('#urlEnter').click(() => {
-              if ($jq('div.room-bg[role="img"]').length > 0) $jq('div.room-bg[role="img"]').attr('style', `background-image: url("${$jq('input[name="urlCode"]').val()}");`)
-            })
-            break
-          default:
-            $jq('div.color-info').hide()
-            $jq('div.url-info').hide()
-            if ($jq('div.room-bg[role="img"]').length > 0) $jq('div.room-bg[role="img"]').attr('style', `background-image: url("${backgroundImage[id].url}");`)
-            break
-        }
-      }
-      function get_skin (id) {
-        $('.pre-button').attr('disabled', 'disabled')
-        switch (id) {
-          case 'default':
-            $('[name="skinBgCode"]').val('')
-            $('style[id^=skin-css-').remove()
-            $('head').append('<style type="text/css" id="skin-css-default"></style>')
-            break
-          case 'transparent':
-            $('[name="skinBgCode"]').val('')
-            set_skin(id, { headInfoBgPic: '#fff0', giftControlBgPic: '#fff0', rankListBgPic: '#fff0', danmakuBgPic: '#fff0', inputBgPic: '#fff0' })
-            $('#headInfoBgPic').val('#fff0')
-            $('#giftControlBgPic').val('#fff0')
-            $('#rankListBgPic').val('#fff0')
-            $('#danmakuBgPic').val('#fff0')
-            $('#inputBgPic').val('#fff0')
-            break
-          case 'customize':
-            $('input[name="skinBgCode"]').removeAttr('disabled')
-            $('.pre-button').removeAttr('disabled')
-            break
-          default:
-            $('[name="skinBgCode"]').val('')
-            set_skin(id, JSON.parse(get_skin_conf(id, skin).skin_config.replace(/#FF/g, '#')))
-        }
-      }
-      function set_skin (id, skin_config) {
-        Object.keys(skin_config).forEach(function (key) {
-          $jq('#' + key).val(skin_config[key])
-        })
-        const mainText = skin_config.mainText ? `
-  .live-skin-coloration-area
-    .live-skin-main-text {
-      color: ${skin_config.mainText}!important;
-    }
-
-  .live-skin-coloration-area
-    .live-skin-main-a-text:link,.live-skin-main-a-text:visited {
-      color: ${skin_config.mainText}!important;
-    }
-` : ''
-        const normalText = skin_config.normalText ? `
-  .live-skin-coloration-area
-    .live-skin-normal-text {
-      color: ${skin_config.normalText}!important;
-    }
-
-  .live-skin-coloration-area
-    .live-skin-normal-a-text {
-      color: ${skin_config.normalText}!important;
-    }
-
-  .live-skin-coloration-area
-    .live-skin-normal-a-text:link,.live-skin-normal-a-text:visited {
-      color: ${skin_config.normalText}!important;
-    }
-` : ''
-        const highlightContent = skin_config.highlightContent ? `
-  .live-skin-coloration-area
-    .live-skin-main-a-text:hover,.live-skin-main-a-text:active {
-      color: ${skin_config.highlightContent}!important;
-    }
-
-  .live-skin-coloration-area
-    .live-skin-normal-a-text:hover,.live-skin-normal-a-text:active {
-      color: ${skin_config.highlightContent}!important;
-    }
-
-  .live-skin-coloration-area
-    .live-skin-highlight-text {
-      color: ${skin_config.highlightContent}!important;
-    }
-
-  .live-skin-coloration-area
-    .live-skin-highlight-bg {
-      background-color: ${skin_config.highlightContent}!important;
-    }
-
-  .live-skin-coloration-area
-    .live-skin-highlight-border {
-      border-color: ${skin_config.highlightContent}!important;
-    }
-
-  .live-skin-coloration-area
-    .live-skin-highlight-button-bg.bl-button--primary:not(:disabled) {
-      background-color: ${skin_config.highlightContent};
-    }
-
-  .live-skin-coloration-area
-    .live-skin-highlight-button-bg.bl-button--primary:hover:not(:disabled) {
-      background-color: ${skin_config.highlightContent};
-    }
-
-  .live-skin-coloration-area
-    .live-skin-highlight-button-bg.bl-button--primary:active:not(:disabled) {
-      background-color: ${skin_config.highlightContent};
-    }
-` : ''
-        const border = skin_config.border ? `
-  .live-skin-coloration-area
-    .live-skin-separate-border {
-      border-color: ${skin_config.border}!important;
-    }
-
-  .live-skin-coloration-area
-    .live-skin-separate-area {
-      background-color: ${skin_config.border}!important;
-    }
-
-  .live-skin-coloration-area
-    .live-skin-separate-area-hover:hover {
-      background-color: ${skin_config.border}!important;
-    }
-` : ''
-        const headInfoBgPic = skin_config.headInfoBgPic
-        const giftControlBgPic = skin_config.giftControlBgPic
-        const rankListBgPic = /^#/.test(skin_config.rankListBgPic) ? `#rank-list-ctnr-box,#rank-list-vm {background-color: ${skin_config.rankListBgPic}!important}` : `#rank-list-ctnr-box {background-image: url(${skin_config.rankListBgPic})!important}`
-        const danmakuBgPic = skin_config.danmakuBgPic ? `.chat-history-panel{${/^#/.test(skin_config.danmakuBgPic) ? `background-color: ${skin_config.danmakuBgPic}!important` : `background-image: url(${skin_config.danmakuBgPic})!important`};}` : ''
-        const inputBgPic = skin_config.inputBgPic ? `#chat-control-panel-vm{${/^#/.test(skin_config.inputBgPic) ? `background-color: ${skin_config.inputBgPic}!important` : `background-image: url(${skin_config.inputBgPic})!important`};}` : ''
-
-        $('style[id^=skin-css-').remove()
-        $('body').append(`
-<style type="text/css" id="skin-css-${id}">${`
-${mainText}
-${normalText}
-${highlightContent}
-${border}
-  #head-info-vm {
-    ${/^#/.test(headInfoBgPic) ? `background-color: ${headInfoBgPic}!important` : `background-image: url(${headInfoBgPic})!important`};
-  }
-
-  #gift-control-vm {
-    ${/^#/.test(giftControlBgPic) ? `background-color: ${giftControlBgPic}!important` : `background-image: url(${giftControlBgPic})!important`};
-  }
-
-${rankListBgPic}
-
-  #head-info-vm,#gift-control-vm {
-    border: none !important;
-        box-sizing: border-box;
-  }
-
-  #aside-area-vm {
-    border: none !important;
-        width: 300px;
-  }
-${danmakuBgPic}
-${inputBgPic}
-`.trim()}</style>`)
-      }
-      function get_setting () {
-        const cache = []
-        if ($jq('div.room-bg[role="img"]').length > 0) cache[0] = $jq('div.room-bg[role="img"]').attr('style')
-        if ($('style[id^=skin-css-').length > 0) {
-          const skinId = $('style[id^=skin-css-').attr('id').replace('skin-css-', '')
-          cache[1] = { id: skinId, style: $('style[id^=skin-css-').html() }
-        } else {
-          cache[1] = { id: 'default' }
-        }
-        return cache
-      }
-      function set_all (setting) {
-        if (setting[0] && $jq('div.room-bg[role="img"]').length > 0) $jq('div.room-bg[role="img"]').attr('style', setting[0])
-        if (setting[1]) {
-          $('style[id^=skin-css-').remove()
-          $('head').append(`<style type="text/css" id="skin-css-${setting[1].id}">${setting[1].style}</style>`)
-        }
-      }
-      function screen () {
-        switch ($('div.bilibili-live-player').attr('data-player-state')) {
-          case 'web-fullscreen':
-            sideBarLeft.hide()
-            if (!$('style[id^=skin-css-').html().includes('/*')) $('style[id^=skin-css-').html('/*' + $('style[id^=skin-css-').html() + '*/')
-            break
-          case 'normal':
-            sideBarLeft.show()
-            if ($('style[id^=skin-css-').html().includes('/*')) $('style[id^=skin-css-').html($('style[id^=skin-css-').html().replace(/\*\/|\/\*/g, ''))
-            break
-          case 'fullscreen':
-            sideBarLeft.hide()
-            break
-          default:
-            break
-        }
-      }
-
-      $jq(document).click(function (e) {
-        if ($jq(e.target).attr('data-title') && ($jq(e.target).attr('data-title').includes('全屏'))) screen()
-      })
-      $jq(document).dblclick(screen)
-      $jq(document).keydown(function (e) {
-        const keyArr = [13, 27, 108]
-        if (keyArr.indexOf(e.keyCode) > -1) screen()
-      })
-      document.addEventListener('fullscreenchange', screen)
-
-      function get_skin_conf (id, skin) {
-        for (const e of skin) {
-          if (e && parseInt(e.id) === parseInt(id)) return e
-        }
-      }
-      function updateSkin (id = 1) {
-        msg('正在更新皮肤缓，请耐心等待')
-        const skinCache = GM_getValue('skinCache') || []
-        if (!skinCache[id + 3]) {
-          GM_xmlhttpRequest({
-            method: 'GET',
-            url: 'https://api.live.bilibili.com/room/v1/Skin/info?skin_platform=web&skin_version=1&id=' + id,
-            responseType: 'json',
-            onload: data => {
-              const skinConfig = data.response.data
-              if (data.status === 200 && data.response.code === 0 && Object.prototype.toString.call(skinConfig) === '[object Object]' && skinConfig.id === id) {
-                skin[skinConfig.id + 3] = {
-                  id: skinConfig.id,
-                  name: skinConfig.skin_name,
-                  skin_config: skinConfig.skin_config
-                }
-                console.log('皮肤' + skinConfig.id + '更新成功')
-                GM_setValue('skinCache', skin)
-                updateSkin(++id)
-              } else if (data.status === 200 && data.response.code === 0) {
-                msg('皮肤缓存更新完成，刷新后可查看新皮肤')
-              } else {
-                console.log('皮肤' + id + '更新失败')
-                console.log(data)
-              }
+          $('#control-panel-ctnr-box').append(`
+      <div id="skin-setting-div" data-v-189ff8e4="" data-v-4f7fad56="" class="border-box dialog-ctnr common-popup-wrap top-center" style="transform-origin: 91px bottom;width: 280px;margin: 0px 0px 0px -140px;left: 50%;max-height: 500px;display:none;">
+      <div data-v-189ff8e4="" class="arrow p-absolute" style="left: 125px;"></div>
+      <h1 data-v-14d43f2e="" class="title" style="margin: 10px 0;">背景图</h1>
+      <input value="${customedBgimg}" data-v-262ea052="" data-v-14d43f2e="" type="text" placeholder="请输入背景图链接" maxlength="2000" class="background-custom link-input border-box keyword-input v-middle" style="width: 178px; height: 24px;"><button data-v-3a76d6ec="" data-v-14d43f2e="" disabled="disabled" class="change-bgimg bl-button dp-i-block v-middle keyword-submit-btn bl-button--primary bl-button--small"><span data-v-3a76d6ec="" class="txt">更换</span></button><span data-v-14d43f2e=""></span>
+      <h1 data-v-14d43f2e="" class="title" style="margin: 10px 0;">皮肤</h1>
+      <div data-v-4f107cb5="" data-v-189ff8e4="" class="block-effect-ctnr h-100 border-box p-relative"style="overflow-y: auto;max-height: 380px;">
+      <form>
+      <ul data-v-4f107cb5="" class="list">
+      ${html}
+      </ul></form></div></div>`)
+          $('#skin-setting-div').show('normal')
+          $("input.background-custom").bind('input porpertychange', function () {
+            if ($(this).val().length > 0) {
+              $('button.change-bgimg').removeAttr('disabled')
+            } else {
+              $('button.change-bgimg').attr('disabled', 'disabled')
             }
           })
-        } else {
-          updateSkin(++id)
+          $('button.change-bgimg').click(function () {
+            customedBgimg = $("input.background-custom").val()
+            if (customedBgimg === '0'){
+              customedBgimg = 0
+            }else{
+              changeBackgroundImage(customedBgimg)
+            }
+            GM_setValue('customedBgimg', customedBgimg)
+          })
+          $('#skin-setting-div .item').click(function (e) {
+            if (e.target === $(this).find('input')[0]) {
+              $('#skin-setting-div .item>span.svg-icon').removeClass('checkbox-selected').addClass('checkbox-default')
+              $(this).find('span.svg-icon').removeClass('checkbox-default').addClass('checkbox-selected')
+              selectedSkin = parseInt($(this).attr('data-id'))
+              if (selectedSkin !== 0) {
+                generateStyle(skinConfig[selectedSkin].skin_config)
+              }
+              GM_setValue('selectedSkin', selectedSkin)
+            }
+          })
+        }
+      })
+
+      $(document).on('click', function (e) {
+        const skinSettingDiv = $('#skin-setting-div')
+        const skinSettingIcon = $('#skin-setting-icon')
+        if (!skinSettingDiv.is(e.target) && skinSettingDiv.has(e.target).length === 0 && !skinSettingIcon.is(e.target) && skinSettingIcon.has(e.target).length === 0) {
+          skinSettingDiv.hide('fast', () => { skinSettingDiv.remove() })
+        }
+      });
+      updateSkinConfig(skinConfig.length)
+    }
+  })
+
+  function updateSkinConfig(id) {
+    GM_xmlhttpRequest({
+      url: `https://api.live.bilibili.com/room/v1/Skin/info?skin_platform=web&skin_version=1&id=${id}`,
+      methon: 'get',
+      responseType: 'json',
+      onload: data => {
+        if (data.response.code === 0 && !Array.isArray(data.response.data)) {
+          const skinData = data.response.data
+          skinData.skin_config = JSON.parse(skinData.skin_config)
+          skinConfig[skinData.id] = skinData
+          GM_setValue('skinConfig', skinConfig)
+          $('#skin-setting-div .list').append(`<li data-v-4f107cb5="" class="item" data-id="${skinData.id}">
+      <span data-v-4f107cb5="" class="cb-icon svg-icon v-middle p-absolute checkbox-default}"></span>
+      <input data-v-4f107cb5="" id="skin-${skinData.id}" type="radio" name="skin" class="pointer v-middle">
+      <label data-v-4f107cb5="" for="skin-${skinData.id}" class="pointer dp-i-block v-middle">${skinData.skin_name}</label>
+      </li>`)
+          updateSkinConfig(++id)
         }
       }
-      function msg (message = '', status = 'success', timer = 4000) {
-        $jq('.link-toast').remove()
-        $jq('body').append(`<div class="link-toast ${status}" style="left: ${document.documentElement.clientWidth / 2 - 100}px; top: ${document.documentElement.clientHeight / 2}px;"><span class="toast-text">${message}</span></div>`)
-        setTimeout(() => { $jq('.link-toast').remove() }, timer)
-      }
-      GM_addStyle(`
-.side-bar-left {
-    height: 230px;
-    position: fixed;
-    left: 0;
-    bottom: 30%;
-    padding: 12px 4px;
-    background-color: #fff;
-    z-index: 1000000;
-    border-radius: 0 12px 12px 0;
-    -webkit-box-shadow: 0 0 20px 0 rgba(0,85,255,.1);
-    box-shadow: 0 0 20px 0 rgba(0,85,255,.1);
-    -webkit-transition: height .4s cubic-bezier(.22,.58,.12,.98);
-    -o-transition: height cubic-bezier(.22,.58,.12,.98) .4s;
-    transition: height .4s cubic-bezier(.22,.58,.12,.98);
-    border: 1px solid #e9eaec;
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
-}
-
-.side-bar-btn-div {
-    width: 56px;
-    height: 56px;
-    -webkit-box-sizing: border-box;
-    box-sizing: border-box;
-    margin: 4px 0;
-    cursor: pointer;
-    text-align: center;
-    padding: 5px 0;
-}
-
-.svg-icon-span {
-    font-size: 26px !important;
-    margin: 0 auto;
-    width: 26px;
-    height: 26px;
-}
-
-.size-bar-text-p {
-    margin: 4px 0 0;
-    font-size: 12px;
-    line-height: 16px;
-}
-
-.awarding-panel-setting {
-    left: 80px;
-    bottom: -200px;
-    -webkit-transform-origin: 0 100%;
-    -ms-transform-origin: 0 100%;
-    transform-origin: 0 100%;
-    width: 500px;
-    height: 500px;
-    padding: 24px;
-    font-size: 12px;
-    color: #333;
-    background-color: #fff;
-    border: 1px solid #e9eaec;
-    border-radius: 12px;
-    z-index: 1;
-}
-
-.awarding-panel-setting .title {
-    margin: 0;
-    font-size: 18px;
-    font-weight: 400;
-    color: #23ade5;
-}
-
-.awarding-panel-setting .close-btn {
-    padding: 0;
-    top: 16px;
-    right: 16px;
-    font-size: 16px;
-    color: #999;
-    border: none;
-    background-color: transparent;
-}
-
-.awarding-panel-setting .close-btn:hover {
-    -webkit-transform: scale(1.1) rotate(180deg);
-    -ms-transform: scale(1.1) rotate(180deg);
-    transform: scale(1.1) rotate(180deg);
-}
-
-.awarding-panel-setting .close-btn {
-    padding: 0;
-    top: 16px;
-    right: 16px;
-    font-size: 16px;
-    color: #999;
-    border: none;
-    background-color: transparent;
-}
-
-.awarding-panel-setting .info-section {
-    margin-top: 24px;
-}
-
-.background-select,.skin-select {
-    width: 22%;
-    min-width: 70px;
-    height: 20px;
-    margin: 5px;
-    border-radius: 30px;
-    text-align: center;
-    cursor: pointer;
-    -webkit-transition: all 1s cubic-bezier(.22,.58,.12,.98);
-    -o-transition: all 1s cubic-bezier(.22,.58,.12,.98);
-    transition: all 1s cubic-bezier(.22,.58,.12,.98);
-    vertical-align: middle;
-    display: inline-block;
-}
-
-.hour-rank-info {
-    line-height: 16px;
-    padding: 2px 8px;
-    margin: 0;
-    font-size: 12px;
-    color: #fff;
-    -webkit-transition: width 3s cubic-bezier(.22,.58,.12,.98);
-    -o-transition: width 3s cubic-bezier(.22,.58,.12,.98);
-    transition: width 3s cubic-bezier(.22,.58,.12,.98);
-    min-width: 70px;
-    height: 20px;
-    border-radius: 30px;
-    text-align: center;
-    cursor: pointer;
-}
-
-.code-div {
-    background-color: hsla(0,0%,100%,.88);
-    display: block;
-    height: 32px;
-    border-style: solid;
-    border-radius: 4px;
-    border-color: #e9f2f7;
-    transition: background-color .2s;
-    margin-top: 3px;
-}
-
-.v-middle-color {
-    float: none;
-    color: #222;
-    font-size: 12px;
-    overflow: hidden;
-    height: 32px;
-    line-height: 32px;
-    padding: 0;
-    border: 0;
-    box-shadow: none;
-    background-color: transparent;
-}
-
-.color-button {
-    display: block;
-    position: relative;
-    right: 0;
-    width: 48px;
-    min-width: 0;
-    cursor: pointer;
-    height: 32px;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    color: #00a4db;
-}
-
-.color-button:hover {
-    color: #ff4e8e;
-}
-
-.color-code-div {
-    width: 218px;
-}
-
-.url-code-div {
-    width: 418px;
-}
-
-[name="colorCode"] {
-    width: 146px;
-}
-
-[name="urlCode"] {
-    width: 372px;
-}
-
-[name="skinBgCode"] {
-    width: 63%;
-    height: 22px;
-}
-
-.save-button,.pre-button,.get-config-button {
-    min-width: 80px;
-    height: 24px;
-    font-size: 12px;
-    background-color: #23ade5;
-    color: #fff;
-    border-radius: 4px;
-    position: relative;
-    -webkit-box-sizing: border-box;
-    box-sizing: border-box;
-    line-height: 1;
-    margin: 0;
-    padding: 6px 12px;
-    border: 0;
-    cursor: pointer;
-    outline: none;
-    overflow: hidden;
-    bottom: 10px;
-}
-
-.save-button:hover,.pre-button:hover,.get-config-button:hover {
-    background-color: #39b5e7;
-}
-
-.save-txt {
-    position: relative;
-}
-
-.bottom-div {
-    position: absolute;
-    left: 200px;
-    bottom: 0;
-}
-
-.skin-btn,.skin-code-div {
-    height: 22px;
-}
-
-.skin-btn {
-    float: right;
-}
-
-button[disabled] {
-    cursor: not-allowed;
-    background-color:#e9eaec;
-    color:#b4b4b4
-}
-
-.link-toast {
-    z-index:99999999999999;
-}
-`)
-      GM_registerMenuCommand('清空设置', () => { GM_setValue('mySetting', null) })
-      GM_registerMenuCommand('显示/隐藏设置菜单', () => { sideBarLeft.toggle() })
-    }
+    })
   }
-})($jQuery)
+  function changeBackgroundImage(url) {
+    GM_xmlhttpRequest({
+      url: url,
+      methon: 'get',
+      responseType: 'blob',
+      onload: data => {
+        $('[role="img.webp"]').css('background-image', 'url(' + window.URL.createObjectURL(data.response) + ')')
+      }
+    })
+  }
+
+  function generateStyle(skinConfig) {
+    const mainText = skinConfig.mainText.replace(/#([\d\w]{2})(.+)/, function (match, p1, p2) {
+      return '#' + p2 + p1
+    })
+    const normalText = skinConfig.normalText.replace(/#([\d\w]{2})(.+)/, function (match, p1, p2) {
+      return '#' + p2 + p1
+    })
+    const highlightContent = skinConfig.highlightContent.replace(/#([\d\w]{2})(.+)/, function (match, p1, p2) {
+      return '#' + p2 + p1
+    })
+    const highlightContentHover = skinConfig.highlightContent.replace(/#([\d\w]{2})(.+)/, function (match, p1, p2) {
+      return '#' + p2 + 'cc'
+    })
+    const border = skinConfig.border.replace(/#([\d\w]{2})(.+)/, function (match, p1, p2) {
+      return '#' + p2 + p1
+    })
+    const skinCss = `
+.live-skin-coloration-area .live-skin-main-text {
+  color: ${mainText} !important;
+    fill: ${mainText} !important;
+}
+
+.live-skin-coloration-area .live-skin-main-a-text:link,.live-skin-coloration-area .live-skin-main-a-text:visited {
+  color: ${mainText} !important;
+}
+
+.live-skin-coloration-area .week-icon {
+  color: ${mainText} !important;
+    border-color: ${mainText} !important;
+}
+
+.live-skin-coloration-area .live-skin-main-a-text:hover,.live-skin-coloration-area .live-skin-main-a-text:active {
+  color: ${mainText} !important;
+}
+
+.live-skin-coloration-area .live-skin-normal-text {
+  color: ${normalText} !important;
+}
+
+.live-skin-coloration-area .live-skin-normal-a-text {
+  color: ${normalText} !important;
+}
+
+.live-skin-coloration-area .live-skin-normal-a-text:link,.live-skin-coloration-area .live-skin-normal-a-text:visited {
+  color: ${normalText} !important;
+}
+
+.live-skin-coloration-area .live-skin-normal-a-text:hover,.live-skin-coloration-area .live-skin-normal-a-text:active {
+  color: ${highlightContent} !important;
+}
+
+.live-skin-coloration-area .live-skin-highlight-text {
+  color: ${highlightContent} !important;
+}
+
+.live-skin-coloration-area .live-skin-highlight-bg {
+  background-color: ${highlightContent} !important;
+}
+
+.live-skin-coloration-area .live-skin-highlight-border {
+  border-color: ${highlightContent} !important;
+}
+
+.live-skin-coloration-area .live-skin-highlight-button-bg.bl-button--primary:not(:disabled) {
+  background-color: ${highlightContent};
+}
+
+.live-skin-coloration-area .live-skin-highlight-button-bg.bl-button--primary:hover:not(:disabled) {
+  background-color: ${highlightContentHover};
+}
+
+.live-skin-coloration-area .live-skin-highlight-button-bg.bl-button--primary:active:not(:disabled) {
+  background-color: ${highlightContentHover};
+}
+
+.live-skin-coloration-area .live-skin-separate-border {
+  border-color: ${border} !important;
+}
+
+.live-skin-coloration-area .live-skin-separate-area {
+  background-color: ${border} !important;
+}
+
+.live-skin-coloration-area .live-skin-separate-area-hover:hover {
+  background-color: ${border} !important;
+}
+
+.live-skin-coloration-area .live-skin-button-text:not(:disabled) {
+  color: rgba(255,255,255,1);
+    fill: rgba(255,255,255,1);
+}
+
+#head-info-vm {
+  background-image: url("${skinConfig.headInfoBgPic}");
+}
+
+#gift-control-vm {
+  background-image: url("${skinConfig.giftControlBgPic}");
+}
+
+#rank-list-vm,#rank-list-ctnr-box {
+  background-image: url("${skinConfig.rankListBgPic}");
+}
+
+#chat-control-panel-vm {
+  background-image: url("${skinConfig.rankListBgPic}");
+}
+
+.supportWebp #head-info-vm {
+  background-image: url("${skinConfig.headInfoBgPic}@90q.webp");
+}
+
+.supportWebp #gift-control-vm {
+  background-image: url("${skinConfig.giftControlBgPic}@90q.webp");
+}
+
+.supportWebp #rank-list-vm,.supportWebp #rank-list-ctnr-box {
+  background-image: url("${skinConfig.rankListBgPic}@90q.webp");
+}
+
+.supportWebp #chat-control-panel-vm {
+  background-image: url("${skinConfig.rankListBgPic}@90q.webp");
+}
+
+#head-info-vm,#gift-control-vm {
+  border: none !important;
+    padding: 1px;
+}
+
+#aside-area-vm {
+  border: none !important;
+}
+
+#rank-list-vm,#rank-list-ctnr-box {
+  background-repeat: no-repeat;
+    background-size: 100% auto;
+}
+
+#chat-control-panel-vm {
+  background-repeat: no-repeat;
+    background-size: 100% auto;
+    background-position: bottom left;
+}
+      `
+    GM_addStyle(skinCss)
+  }
+})();
