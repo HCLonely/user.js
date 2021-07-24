@@ -7,6 +7,7 @@
 // @include      /^https?:\/\/live.bilibili.com\/(blanc\/)?[\d]+/
 // @run-at       document-end
 // @connect      api.live.bilibili.com
+// @connect      *
 // @grant        GM_xmlhttpRequest
 // @grant        GM_addStyle
 // @grant        GM_getValue
