@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         bilibili勋章常亮
 // @namespace    bilibili-medal
-// @version      0.3
+// @version      0.4
 // @description  保持bilibili直播粉丝勋章常亮
 // @author       HCLonely
 // @include      https://link.bilibili.com/p/center/index
@@ -28,7 +28,7 @@
     const find = setInterval(async () => {
       if ($('.page-title').length > 0) {
         clearInterval(find)
-        const signBtn = $('<button data-v-461ef7c9="" class="panigation ts-dot-4">开始签到</button>')
+        const signBtn = $('<div class="link-panigation" style="display: inline;"><button data-v-461ef7c9="" class="panigation ts-dot-4" style="height: 30px;">开始签到</button></div>')
         signBtn.click(async () => {
           $('.text-ctnr').remove()
           $('table.center-grid>thead>tr').html('<td data-v-3895bb76="" width="160" style="padding-left: 60px;">主播昵称</td><td data-v-3895bb76="" width="160">直播间</td><td data-v-3895bb76="" width="120">签到结果</td>')
