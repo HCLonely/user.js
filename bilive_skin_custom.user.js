@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         bilibili直播自定义皮肤背景
 // @namespace    http://tampermonkey.net/
-// @version      2.0.1
+// @version      2.0.2
 // @description  自定义bilibili直播的皮肤和背景，仅自己可见！
 // @author       HCLonely
 // @include      /^https?:\/\/live.bilibili.com\/(blanc\/)?[\d]+/
@@ -42,24 +42,28 @@
         } else {
           let html = ''
           for (const config of skinConfig) {
-            html += `<li data-v-4f107cb5="" class="item" data-id="${config.id}">
+            html += `<li data-v-4f107cb5="" class="item" data-id="${config.id}"${config.id === selectedSkin ? ' id="skin-selected"' : ''}>
       <span data-v-4f107cb5="" class="cb-icon svg-icon v-middle p-absolute${config.id === selectedSkin ? ' checkbox-selected' : ' checkbox-default'}"></span>
       <input data-v-4f107cb5="" id="skin-${config.id}" type="radio" name="skin" class="pointer v-middle">
-      <label data-v-4f107cb5="" for="skin-${config.id}" class="pointer dp-i-block v-middle" style="max-width: 90%;">${config.skin_name}</label>
+      <label data-v-4f107cb5="" for="skin-${config.id}" class="pointer dp-i-block v-middle" style="max-width: 90%;">${config.id}. ${config.skin_name}</label>
       </li>`
           }
           $('#control-panel-ctnr-box').append(`
       <div id="skin-setting-div" data-v-189ff8e4="" data-v-4f7fad56="" class="border-box dialog-ctnr common-popup-wrap top-center" style="transform-origin: 91px bottom;width: 280px;margin: 0px 0px 0px -140px;left: 50%;max-height: 500px;display:none;">
       <div data-v-189ff8e4="" class="arrow p-absolute" style="left: 125px;"></div>
       <h1 data-v-14d43f2e="" class="title" style="margin: 10px 0;">背景图</h1>
-      <input value="${customedBgimg}" data-v-262ea052="" data-v-14d43f2e="" type="text" placeholder="请输入背景图链接" maxlength="2000" class="background-custom link-input border-box keyword-input v-middle" style="width: 178px; height: 24px;"><button data-v-3a76d6ec="" data-v-14d43f2e="" disabled="disabled" class="change-bgimg bl-button dp-i-block v-middle keyword-submit-btn bl-button--primary bl-button--small"><span data-v-3a76d6ec="" class="txt">更换</span></button><span data-v-14d43f2e=""></span>
+      <input value="${customedBgimg}" data-v-262ea052="" data-v-14d43f2e="" type="text" placeholder="请输入背景图链接，0为默认皮肤" maxlength="2000" class="background-custom link-input border-box keyword-input v-middle" style="width: 178px; height: 24px;"><button data-v-3a76d6ec="" data-v-14d43f2e="" disabled="disabled" class="change-bgimg bl-button dp-i-block v-middle keyword-submit-btn bl-button--primary bl-button--small"><span data-v-3a76d6ec="" class="txt">更换</span></button><span data-v-14d43f2e=""></span>
       <h1 data-v-14d43f2e="" class="title" style="margin: 10px 0;">皮肤</h1>
-      <div data-v-4f107cb5="" data-v-189ff8e4="" class="block-effect-ctnr h-100 border-box p-relative"style="overflow-y: auto;max-height: 380px;">
+      <div id="skin-container" data-v-4f107cb5="" data-v-189ff8e4="" class="block-effect-ctnr h-100 border-box p-relative"style="overflow-y: auto;max-height: 380px;">
       <form>
       <ul data-v-4f107cb5="" class="list">
       ${html}
       </ul></form></div></div>`)
           $('#skin-setting-div').show('normal')
+          const container = $('#skin-container')
+          const inner = $('#skin-selected')
+          console.log(container, inner)
+          container.scrollTop(inner.offset().top - container.offset().top + container.scrollTop())
           $("input.background-custom").bind('input porpertychange', function () {
             if ($(this).val().length > 0) {
               $('button.change-bgimg').removeAttr('disabled')
