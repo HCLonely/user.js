@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         bilibili直播自定义皮肤背景
 // @namespace    http://tampermonkey.net/
-// @version      2.1.0
+// @version      2.1.1
 // @description  自定义bilibili直播的皮肤和背景，仅自己可见！
 // @author       HCLonely
 // @include      /^https?:\/\/live.bilibili.com\/(blanc\/)?[\d]+/
@@ -71,7 +71,7 @@
             <ul class="skin-custom list">
             ${html}
             </ul></form></div>
-            <div style="text-align: center;"><button class="skin-custom custom-skin bl-button dp-i-block v-middle keyword-submit-btn bl-button--primary bl-button--small"><span class="skin-custom txt">自定义</span></button></div></div>
+            <div style="text-align: center;margin-top: 5px;"><button class="skin-custom custom-skin bl-button dp-i-block v-middle keyword-submit-btn bl-button--primary bl-button--small"><span class="skin-custom txt">自定义</span></button></div></div>
           `)
           $('#skin-setting-div').show('normal')
           const container = $('#skin-container')
