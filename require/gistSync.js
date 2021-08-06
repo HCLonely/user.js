@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name               gistSync
 // @namespace          gistSync
-// @version            1.0.2
+// @version            1.0.3
 // @description        使用gist进行数据同步
 // @author             HCLonely
 // @license            MIT
@@ -146,6 +146,7 @@ function setting () {
     const data = {}
     const names = GM_listValues()
     for (const name of names) {
+      if (name === 'gistConf') continue
       data[name] = GM_getValue(name)
     }
     Swal.update({

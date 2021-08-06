@@ -4,7 +4,7 @@ function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArra
 
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 
-function _iterableToArrayLimit(arr, i) { var _i = arr && (typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]); if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+function _iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
 
 function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
@@ -23,7 +23,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 // ==UserScript==
 // @name               gistSync
 // @namespace          gistSync
-// @version            1.0.2
+// @version            1.0.3
 // @description        使用gist进行数据同步
 // @author             HCLonely
 // @license            MIT
@@ -217,28 +217,60 @@ function setting() {
             data = {};
             names = GM_listValues();
             _iterator = _createForOfIteratorHelper(names);
+            _context2.prev = 7;
 
-            try {
-              for (_iterator.s(); !(_step = _iterator.n()).done;) {
-                name = _step.value;
-                data[name] = GM_getValue(name);
-              }
-            } catch (err) {
-              _iterator.e(err);
-            } finally {
-              _iterator.f();
+            _iterator.s();
+
+          case 9:
+            if ((_step = _iterator.n()).done) {
+              _context2.next = 16;
+              break;
             }
 
+            name = _step.value;
+
+            if (!(name === 'gistConf')) {
+              _context2.next = 13;
+              break;
+            }
+
+            return _context2.abrupt("continue", 14);
+
+          case 13:
+            data[name] = GM_getValue(name);
+
+          case 14:
+            _context2.next = 9;
+            break;
+
+          case 16:
+            _context2.next = 21;
+            break;
+
+          case 18:
+            _context2.prev = 18;
+            _context2.t0 = _context2["catch"](7);
+
+            _iterator.e(_context2.t0);
+
+          case 21:
+            _context2.prev = 21;
+
+            _iterator.f();
+
+            return _context2.finish(21);
+
+          case 24:
             Swal.update({
               icon: 'info',
               title: '正在上传数据...'
             });
-            _context2.next = 11;
+            _context2.next = 27;
             return setGistData(TOKEN, GIST_ID, FILE_NAME, data);
 
-          case 11:
+          case 27:
             if (!_context2.sent) {
-              _context2.next = 15;
+              _context2.next = 31;
               break;
             }
 
@@ -246,21 +278,21 @@ function setting() {
               icon: 'success',
               title: '同步数据成功！'
             });
-            _context2.next = 16;
+            _context2.next = 32;
             break;
 
-          case 15:
+          case 31:
             Swal.fire({
               icon: 'error',
               title: '同步数据失败，请在控制台查看错误信息！'
             });
 
-          case 16:
+          case 32:
           case "end":
             return _context2.stop();
         }
       }
-    }, _callee2);
+    }, _callee2, null, [[7, 18, 21, 24]]);
   })));
   $('#download-data').click( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
     var _ref6, TOKEN, GIST_ID, FILE_NAME, data, _i, _Object$entries, _Object$entries$_i, name, value;
