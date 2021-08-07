@@ -3,7 +3,7 @@
 // @namespace   HCLonely
 // @author      HCLonely
 // @description 复制网页中的Steamkey后自动激活，3.0+版本为Beta版
-// @version     Test-3.1.0
+// @version     3.1.1
 // @supportURL  https://blog.hclonely.com/posts/71381355/
 // @homepage    https://blog.hclonely.com/posts/71381355/
 // @iconURL     https://blog.hclonely.com/img/avatar.jpg
@@ -1058,9 +1058,9 @@
       type: 'get',
       success: function (data) {
         if (data.match(/id="usercountrycurrency_trigger"[\w\W]*?>[w\W]*?<\/a/gim)) {
-          const c = data.match(/id="usercountrycurrency_trigger"[\w\W]*?>[w\W]*?<\/a/gim)[0].replace(/id="usercountrycurrency_trigger"[\w\W]*?>|<\/a/g, '')
+          const c = data.match(/id="usercountrycurrency_trigger".*?>(.*?)<\/a/i)?.[1]
           // const thisC = data.match(/id="usercountrycurrency"[\w\W]*?value=".*?"/gim)[0].match(/value=".*?"/gim)[0].replace(/value="|"/g, '')
-          const div = data.match(/<div class="currency_change_options">[\w\W]*?<p/gim)[0].replace(/[\s]*?<p/gim, '') + '</div>'
+          const div = data.match(/<div class="currency_change_options">([\w\W]*?)<p/i)?.[1].trim() + '</div>'
           // $jQuery("body").append(`<div id="nowCountry" class="ellipsis" data-country="${thisC}" style="font-size:20px;">转换商店和钱包&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;当前国家/地区：${c}</div><div style="padding:20px">${div}</div></div>`);
           swal({
             closeOnClickOutside: false,
@@ -1097,9 +1097,9 @@
           url: '//store.steampowered.com/cart/',
           type: 'get',
           success: function (data) {
-            const c = data.match(/id="usercountrycurrency_trigger"[\w\W]*?>[w\W]*?<\/a/gim)[0].replace(/id="usercountrycurrency_trigger"[\w\W]*?>|<\/a/g, '')
-            const thisC = data.match(/id="usercountrycurrency"[\w\W]*?value=".*?"/gim)[0].match(/value=".*?"/gim)[0].replace(/value="|"/g, '')
-            const div = data.match(/<div class="currency_change_options">[\w\W]*?<p/gim)[0].replace(/[\s]*?<p/gim, '') + '</div>'
+            const c = data.match(/id="usercountrycurrency_trigger".*?>(.*?)<\/a/i)?.[1]
+            const thisC = data.match(/id="usercountrycurrency".*?value="(.*?)"/i)?.[1]
+            const div = data.match(/<div class="currency_change_options">([\w\W]*?)<p/i)?.[1].trim() + '</div>'
 
             if (thisC === country) {
               swal('更换成功！', '', 'success').then(() => {
