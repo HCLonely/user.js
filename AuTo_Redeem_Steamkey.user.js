@@ -3,7 +3,7 @@
 // @namespace   HCLonely
 // @author      HCLonely
 // @description 复制网页中的Steamkey后自动激活，3.0+版本为Beta版
-// @version     3.1.1
+// @version     3.1.2
 // @supportURL  https://blog.hclonely.com/posts/71381355/
 // @homepage    https://blog.hclonely.com/posts/71381355/
 // @iconURL     https://blog.hclonely.com/img/avatar.jpg
@@ -27,7 +27,7 @@
 
 /* global g_sessionID, swal, arsStatic */
 
-(function ($jQuery) {
+(function () {
   'use strict'
 
   const url = window.location.href
@@ -52,7 +52,7 @@
   }
   if (Object.prototype.toString.call(GM_getValue('setting')) !== '[object Object]') GM_setValue('setting', defaultSetting)
 
-  const asfCommands = $jQuery(arsStatic.html)[0]
+  const asfCommands = $(arsStatic.html)[0]
 
   // 激活页面自动激活
   const selecter = url.includes('/account/registerkey') ? '' : '.hclonely '
@@ -103,40 +103,42 @@
   try {
     if (GM_getValue('setting').selectListen) {
       // 选中激活功能
-      const icon = $jQuery(`<div class='icon-div' title='激活'><img src="${arsStatic.icon}" href="javascript:void(0)" class="icon-img"></div>`)[0]
-      document.documentElement.appendChild(icon)
-      document.addEventListener('mousedown', function (e) {
+      const icon = $(`<div class='icon-div' title='激活'><img src="${arsStatic.icon}" href="javascript:void(0)" class="icon-img"></div>`)[0]
+      const $icon = $(icon)
+      $('html').append(icon)
+      $(document).mousedown(function (e) {
         if (e.target === icon || (e.target.parentNode && e.target.parentNode === icon) || (e.target.parentNode.parentNode && e.target.parentNode.parentNode === icon)) { // 点击了激活图标
           e.preventDefault()
         }
       })
-      // 选中变化事件：当点击已经选中的文本的时候，隐藏激活图标和激活面板（此时浏览器动作是：选中的文本已经取消选中了）
+      // 取消选中，隐藏激活图标和激活面板
       document.addEventListener('selectionchange', () => {
         if (!window.getSelection().toString().trim()) {
-          icon.style.display = 'none'
+          $icon.hide()
         }
       })
-      // 鼠标事件：防止选中的文本消失；显示、隐藏激活图标
-      document.addEventListener('mouseup', function (e) {
+      $(document).mouseup(function (e) {
         if (e.target === icon || (e.target.parentNode && e.target.parentNode === icon) || (e.target.parentNode.parentNode && e.target.parentNode.parentNode === icon)) { // 点击了激活图标
           e.preventDefault()
-          return
+          return false
         }
         const text = window.getSelection().toString().trim()
-        const productKey = window.getSelection().toString().trim() || e.target.value
-        if (/[\d\w]{5}(-[\d\w]{5}){2}/.test(productKey) && text && icon.style.display === 'none') {
-          icon.style.top = e.pageY + 12 + 'px'
-          icon.style.left = e.pageX + 18 + 'px'
-          icon.style.display = 'block'
+        const productKey = text || e.target.value
+        if (/[\d\w]{5}(-[\d\w]{5}){2}/.test(productKey) && text && $icon.is(':hidden')) {
+          $icon.css({
+            top: e.pageY + 12,
+            left: e.pageX + 18
+          }).show()
         } else if (!text) {
-          icon.style.display = 'none'
+          $icon.hide()
         }
       })
-      // 激活图标点击事件
-      icon.addEventListener('click', function (e) {
+
+      $icon.click(function (e) {
         const productKey = window.getSelection().toString().trim() || e.target.value
         registerkey(productKey)
       })
+
     }
 
     // 复制激活功能
@@ -144,7 +146,7 @@
       const activateProduct = function (e) {
         const productKey = window.getSelection().toString().trim() || e.target.value
         if (/^([\w\W]*)?([\d\w]{5}(-[\d\w]{5}){2}(\r||,||，)?){1,}/.test(productKey)) {
-          if (!$jQuery('div.swal-overlay').hasClass('swal-overlay--show-modal')) {
+          if (!$('div.swal-overlay').hasClass('swal-overlay--show-modal')) {
             swal({
               title: '检测到神秘key,是否激活？',
               icon: 'success',
@@ -157,7 +159,7 @@
             })
           }
         } else if (/^!addlicense.*[\d]+$/gi.test(productKey)) {
-          if (Object.prototype.toString.call(GM_getValue('setting')) === '[object Object]' && GM_getValue('setting').asf && !$jQuery('div.swal-overlay').hasClass('swal-overlay--show-modal')) {
+          if (Object.prototype.toString.call(GM_getValue('setting')) === '[object Object]' && GM_getValue('setting').asf && !$('div.swal-overlay').hasClass('swal-overlay--show-modal')) {
             swal({
               closeOnClickOutside: false,
               className: 'swal-user',
@@ -177,99 +179,114 @@
     }
 
     if (/^https?:\/\/store\.steampowered\.com\/account\/registerkey*/.test(url)) {
-      $jQuery('#registerkey_examples_text').html(
-        '<div class="notice_box_content" id="unusedKeyArea" style="display: none">' +
-                    '<b>未使用的Key：</b><a tabindex="300" class="btnv6_blue_hoverfade btn_medium" id="copyUnuseKey"><span>提取未使用key</span></a><br>' +
-                    '<div><ol id="unusedKeys">' +
-                    '</ol></div>' +
-                    '</div>' +
+      $('#registerkey_examples_text').html(
+        `<div class="notice_box_content" id="unusedKeyArea" style="display: none">
+          <b>未使用的Key：</b>
+          <a tabindex="300" class="btnv6_blue_hoverfade btn_medium" id="copyUnuseKey">
+            <span>提取未使用key</span>
+          </a>
+          <br>
+          <div><ol id="unusedKeys"></ol></div>
+        </div>
+        <div class="table-responsive table-condensed">
+          <table class="table table-hover" style="display: none">
+            <caption><h2>激活记录</h2></caption>
+            <thead>
+              <tr>
+                <th>No.</th>
+                <th>Key</th>
+                <th>结果</th>
+                <th>详情</th>
+                <th>Sub</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <br>`)
 
-                    '<div class="table-responsive table-condensed">' +
-                    '<table class="table table-hover" style="display: none">' +
-                    '<caption><h2>激活记录</h2></caption><thead><th>No.</th><th>Key</th>' +
-                    '<th>结果</th><th>详情</th><th>Sub</th></thead><tbody></tbody>' +
-                    '</table></div><br>')
-
-      $jQuery('#copyUnuseKey').click(() => {
-        GM_setClipboard(arr(getKeysByRE($jQuery('#unusedKeys').text())).join(','))
+      $('#copyUnuseKey').click(() => {
+        GM_setClipboard(arr(getKeysByRE($('#unusedKeys').text())).join(','))
         swal({ title: '复制成功！', icon: 'success' })
       })
-      $jQuery('.registerkey_input_box_text').parent().css('float', 'none')
-      $jQuery('.registerkey_input_box_text').parent().append('<textarea class="form-control" rows="3"' +
-          ' id="inputKey" placeholder="支持批量激活，可以把整个网页文字复制过来&#10;' +
-          '若一次激活的Key的数量超过9个则会自动分批激活（等待20秒）&#10;' +
-          '激活多个SUB时每个SUB之间用英文逗号隔开&#10;' +
-          ' style="margin: 3px 0px 0px; width: 525px; height: 102px;"></textarea><br>');
-      /^https?:\/\/store\.steampowered\.com\/account\/registerkey\?key=[\w\W]+/.test(url) && (document.getElementById('inputKey').value = url.replace(/https?:\/\/store\.steampowered\.com\/account\/registerkey\?key=/i, ''))
-      $jQuery('.registerkey_input_box_text').hide()
-      $jQuery('#purchase_confirm_ssa').hide()
+      $('.registerkey_input_box_text').parent().css('float', 'none')
+      $('.registerkey_input_box_text').parent().append(`
+      <textarea class="form-control" rows="3" id="inputKey" placeholder="支持批量激活，可以把整个网页文字复制过来&#10;若一次激活的Key的数量超过9个则会自动分批激活（等待20秒）&#10;激活多个SUB时每个SUB之间用英文逗号隔开" style="margin: 3px 0px 0px; width: 525px; height: 102px;"></textarea><br>`)
+      if (/^https?:\/\/store\.steampowered\.com\/account\/registerkey\?key=.+/.test(url)) {
+        $('#inputKey').val() = url.replace(/https?:\/\/store\.steampowered\.com\/account\/registerkey\?key=/i, '')
+      }
+      $('.registerkey_input_box_text,#purchase_confirm_ssa').hide()
 
-      $jQuery('#register_btn').parent().css('margin', '10px 0')
-      $jQuery('#register_btn').parent().append('<a tabindex="300" class="btnv6_blue_hoverfade btn_medium" style="margin-left:0"' +
-          ' id="redeemKey"><span>激活key</span></a>' + ' &nbsp;&nbsp;' +
-          '<a tabindex="300" class="btnv6_blue_hoverfade btn_medium" style="margin-left:0"' +
-          ' id="redeemSub"><span>激活sub</span></a>' + ' &nbsp;&nbsp;' +
-          '<a tabindex="300" class="btnv6_blue_hoverfade btn_medium" style="margin-left:0"' +
-          ' id="changeCountry"><span>更换国家/地区</span></a>' + ' &nbsp;&nbsp;')
-      $jQuery('#register_btn').remove();
-      /^https?:\/\/store\.steampowered\.com\/account\/registerkey\?key=[\w\W]+/.test(url) && (redeem(getKeysByRE(url.replace(/https?:\/\/store\.steampowered\.com\/account\/registerkey\?key=/i, '').trim())))
-      $jQuery('#redeemKey').click(() => { redeemKeys() })
-      $jQuery('#redeemSub').click(redeemSubs)
-      $jQuery('#changeCountry').click(cc)
+      $('#register_btn').parent().css('margin', '10px 0')
+      $('#register_btn').parent().append(`
+        <a tabindex="300" class="btnv6_blue_hoverfade btn_medium" style="margin-left:0" id="redeemKey">
+          <span>激活key</span>
+        </a> &nbsp;&nbsp;
+        <a tabindex="300" class="btnv6_blue_hoverfade btn_medium" style="margin-left:0" id="redeemSub">
+          <span>激活sub</span>
+        </a> &nbsp;&nbsp;
+        <a tabindex="300" class="btnv6_blue_hoverfade btn_medium" style="margin-left:0" id="changeCountry">
+          <span>更换国家/地区</span>
+        </a> &nbsp;&nbsp;`)
+      $('#register_btn').remove()
+      if (/^https?:\/\/store\.steampowered\.com\/account\/registerkey\?key=.+/.test(url)) {
+        redeem(getKeysByRE(url.replace(/https?:\/\/store\.steampowered\.com\/account\/registerkey\?key=/i, '').trim()))
+      }
+      $('#redeemKey').click(() => { redeemKeys() })
+      $('#redeemSub').click(redeemSubs)
+      $('#changeCountry').click(cc)
 
       toggleUnusedKeyArea()
     } else if (/https?:\/\/steamdb\.info\/freepackages\//.test(url)) { // steamdb.info点击自动跳转到激活页面
-      const activateConsole = function (e) {
+      const activateConsole = function () {
         const sub = []
         $('#freepackages span:visible').map(function () {
           sub.push($(this).attr('data-subid'))
         })
         const freePackages = sub.join(',')
-        // const setting = GM_getValue('setting')
         window.open('https://store.steampowered.com/account/licenses/?sub=' + freePackages, '_self')
-        // if(setting.asf) asfRedeem("!addlicense "+(setting.asfBot||"asf")+" "+freePackages);
-        // else window.open("https://store.steampowered.com/account/licenses/?sub=" + freePackages, "_self");
       }
       const fp = setInterval(() => {
-        if (document.getElementById('freepackages')) {
-          document.getElementById('freepackages').onclick = activateConsole
+        if ($('#freepackages').length > 0) {
+          $('#freepackages').click(activateConsole)
           clearInterval(fp)
         }
       }, 1000)
     } else if (/https?:\/\/store\.steampowered\.com\/account\/licenses\/(\?sub=[\w\W]{0,})?/.test(url)) { // 自动添加sub
-      $jQuery('.pageheader').parent().append('<div style="float: left;";>' +
-          '<textarea class="registerkey_input_box_text" rows="1"' + 'name="product_key"' +
-          ' id="gameSub" placeholder="输入SUB,多个SUB之间用英文逗号连接"' + 'value=""' + 'color:#fff;' +
-          ' style="margin: 3px 0px 0px; width: 400px; height: 15px;background-color:#102634; padding: 6px 18px 6px 18px; font-weight:bold; color:#fff;"></textarea>' +
-          ' &nbsp ' + '</div>' + '<a tabindex="300" class="btnv6_blue_hoverfade btn_medium"' +
-          ' style="width: 95px; height: 30px;"' +
-          ' id="buttonSUB"><span>激活SUB</span></a>' + '<a tabindex="300" class="btnv6_blue_hoverfade btn_medium"' +
-          ' style="width: 125px; height: 30px;margin-left:5px"' +
-          ' id="changeCountry"><span>更改国家/地区</span></a>')
-      $jQuery('#buttonSUB').click(() => { redeemSub() })
-      $jQuery('#changeCountry').click(cc)
-      if (/https?:\/\/store\.steampowered\.com\/account\/licenses\/\?sub=([\d]{1,},){1,}/.test(url)) {
+      $('.pageheader').parent().append(`
+        <div style="float: left;">
+          <textarea class="registerkey_input_box_text" rows="1" name="product_key" id="gameSub" placeholder="输入SUB,多个SUB之间用英文逗号连接" value="" style="margin: 3px 0px 0px; width: 400px; height: 15px;background-color:#102634; padding: 6px 18px 6px 18px; font-weight:bold; color:#fff;"></textarea> &nbsp;
+        </div>
+        <a tabindex="300" class="btnv6_blue_hoverfade btn_medium" style="width: 95px; height: 30px;" id="buttonSUB">
+          <span>激活SUB</span>
+        </a>
+        <a tabindex="300" class="btnv6_blue_hoverfade btn_medium" style="width: 125px; height: 30px;margin-left:5px" id="changeCountry">
+          <span>更改国家/地区</span>
+        </a>`)
+      $('#buttonSUB').click(() => { redeemSub() })
+      $('#changeCountry').click(cc)
+      if (/https?:\/\/store\.steampowered\.com\/account\/licenses\/\?sub=([\d]+,)+/.test(url)) {
         setTimeout(() => { redeemSub(url) }, 2000)
       }
     } else if (GM_getValue('setting').clickListen) { // 点击添加链接
       let htmlEl
-      if (window.document.body) {
-        window.document.body.onclick = function (event) {
+      if ($('body').length > 0) {
+        $('body').click(function (event) {
           htmlEl = event.target// 鼠标每经过一个元素，就把该元素赋值给变量htmlEl
-          if ($jQuery(htmlEl).parents('.swal-overlay').length === 0 && htmlEl.tagName !== 'A' && htmlEl.tagName !== 'BUTTON' && htmlEl.getAttribute('type') !== 'button' && htmlEl.tagName !== 'TEXTAREA' && htmlEl.getAttribute('type') !== 'text') {
-            if (($jQuery(htmlEl).children().length === 0 || !/([0-9,A-Z]{5}-){2,4}[0-9,A-Z]{5}/gim.test($jQuery.makeArray($jQuery(htmlEl).children().map(function () {
-              return $jQuery(this).text()
-            })).join(''))) && /([0-9,A-Z]{5}-){2,4}[0-9,A-Z]{5}/gim.test($jQuery(htmlEl).text())) {
-              mouseClick($jQuery, event)
-              arr($jQuery(htmlEl).text().match(/[\w\d]{5}(-[\w\d]{5}){2}/gim)).map(function (e) {
-                $jQuery(htmlEl).html($jQuery(htmlEl).html().replace(new RegExp(e, 'gi'), `<a class="redee-key" href='javascript:void(0)' target="_self" key='${e}'>${e}</a>`))
+          if ($(htmlEl).parents('.swal-overlay').length === 0 && htmlEl.tagName !== 'A' && htmlEl.tagName !== 'BUTTON' && htmlEl.getAttribute('type') !== 'button' && htmlEl.tagName !== 'TEXTAREA' && htmlEl.getAttribute('type') !== 'text') {
+            if (($(htmlEl).children().length === 0 || !/([0-9,A-Z]{5}-){2,4}[0-9,A-Z]{5}/gim.test($.makeArray($(htmlEl).children().map(function () {
+              return $(this).text()
+            })).join(''))) && /([0-9,A-Z]{5}-){2,4}[0-9,A-Z]{5}/gim.test($(htmlEl).text())) {
+              mouseClick($, event)
+              arr($(htmlEl).text().match(/[\w\d]{5}(-[\w\d]{5}){2}/gim)).map(function (e) {
+                $(htmlEl).html($(htmlEl).html().replace(new RegExp(e, 'gi'), `<a class="redee-key" href='javascript:void(0)' target="_self" key='${e}'>${e}</a>`))
               })
-              $jQuery('.redee-key').click(function () {
-                registerkey($jQuery(this).attr('key'), 1)
+              $('.redee-key').click(function () {
+                registerkey($(this).attr('key'), 1)
               })
             }
           }
-        }
+        })
       }
     }
     if (GM_getValue('setting').allKeyListen) { // 激活页面内所有key
@@ -287,7 +304,7 @@
     swal('AuTo Redeem Steamkey脚本执行出错，详情请查看控制台！', e.stack, 'error')
     console.error(e)
   }
-  function redeemKey (key) {
+  function redeemKey(key) {
     GM_xmlhttpRequest({
       url: 'https://store.steampowered.com/account/ajaxregisterkey/',
       headers: {
@@ -300,8 +317,8 @@
       responseType: 'json',
       timeout: 1000 * ajaxTimeout,
       onloadstart: function () {
-        if (jQuery(selecter + 'table').is(':hidden')) {
-          jQuery(selecter + 'table').fadeIn()
+        if ($(selecter + 'table').is(':hidden')) {
+          $(selecter + 'table').fadeIn()
         }
       },
       onload: function (response) {
@@ -329,66 +346,72 @@
         } else {
           tableUpdateKey(key, myTexts.fail, myTexts.network, 0, myTexts.nothing)
         }
+      },
+      ontimeout: () => {
+        tableUpdateKey(key, myTexts.fail, myTexts.network, 0, myTexts.nothing)
+      },
+      onabort: () => {
+        tableUpdateKey(key, myTexts.fail, myTexts.network, 0, myTexts.nothing)
       }
     })
   }
 
-  function setUnusedKeys (key, success, reason, subId, subName) {
+  function setUnusedKeys(key, success, reason, subId, subName) {
     if (success && allUnusedKeys.includes(key)) {
       var listObject
       allUnusedKeys = allUnusedKeys.filter(function (keyItem) {
         return keyItem !== key
       })
 
-      $jQuery(selecter + 'li').map((i, e) => {
-        if ($jQuery(e).html().includes(key)) {
+      $(selecter + 'li').map((i, e) => {
+        if ($(e).html().includes(key)) {
           listObject.remove()
         }
       })
     } else if (!success && !allUnusedKeys.includes(key) && unusedKeyReasons.includes(reason)) {
-      listObject = $jQuery('<li></li>')
+      listObject = $('<li></li>')
       listObject.html(key + ' ( ' + reason +
         (subId !== 0 ? (': <code>' + subId + '</code> ' + subName) : '') +
         ' )')
-      $jQuery('#unusedKeys').append(listObject)
+      $('#unusedKeys').append(listObject)
 
       allUnusedKeys.push(key)
     }
   }
 
-  function tableInsertKey (key) {
+  function tableInsertKey(key) {
     keyCount++
-    const row = $jQuery('<tr></tr>')
+    const row = $('<tr></tr>')
     row.append('<td class="nobr">' + keyCount + '</td>')
     row.append('<td class="nobr"><code>' + key + '</code></td>')
     row.append('<td colspan="3">' + myTexts.redeeming + '...</td>')
 
-    $jQuery(selecter + 'tbody').prepend(row)
+    $(selecter + 'tbody').prepend(row)
   }
 
-  function tableWaitKey (key) {
+  function tableWaitKey(key) {
     keyCount++
-    const row = $jQuery('<tr></tr>')
+    const row = $('<tr></tr>')
     row.append('<td class="nobr">' + keyCount + '</td>')
     row.append('<td class="nobr"><code>' + key + '</code></td>')
     row.append('<td colspan="3">' + myTexts.waiting + ' (' + waitingSeconds + '秒)...</td>')
 
-    $jQuery(selecter + 'tbody').prepend(row)
+    $(selecter + 'tbody').prepend(row)
   }
 
-  function tableUpdateKey (key, result, detail, subId, subName) {
+  function tableUpdateKey(key, result, detail, subId, subName) {
     setUnusedKeys(key, result === myTexts.success, detail, subId, subName)
 
     recvCount++
     if (!selecter && recvCount === keyCount) {
-      $jQuery('#buttonRedeem').fadeIn()
-      $jQuery('#inputKey').removeAttr('disabled')
+      $('#buttonRedeem').fadeIn()
+      $('#inputKey').removeAttr('disabled')
     }
 
-    var rowObjects = $jQuery(selecter + 'tr')
+    var rowObjects = $(selecter + 'tr')
     for (let i = 1; i < rowObjects.length; i++) {
       const rowElement = rowObjects[i]
-      const rowObject = $jQuery(rowElement)
+      const rowObject = $(rowElement)
 
       if (rowObject.children()[1].innerHTML.includes(key) && rowObject.children()[2].innerHTML.includes(myTexts.redeeming)) {
         rowObject.children()[2].remove()
@@ -406,15 +429,15 @@
     }
   }
 
-  function startTimer () {
+  function startTimer() {
     const timer = setInterval(function () {
       let flag = false
       let nowKey = 0
 
-      const rowObjects = $jQuery(selecter + 'tr')
+      const rowObjects = $(selecter + 'tr')
       for (let i = rowObjects.length - 1; i >= 1; i--) {
         const rowElement = rowObjects[i]
-        const rowObject = $jQuery(rowElement)
+        const rowObject = $(rowElement)
         if (rowObject.children()[2].innerHTML.includes(myTexts.waiting)) {
           nowKey++
           if (nowKey <= autoDivideNum) {
@@ -434,14 +457,14 @@
     }, 1000 * waitingSeconds)
   }
 
-  function redeem (keys) {
+  function redeem(keys) {
     if (keys.length <= 0) {
       return
     }
 
     if (!selecter) {
-      $jQuery('#buttonRedeem').hide()
-      $jQuery('#inputKey').attr('disabled', 'disabled')
+      $('#buttonRedeem').hide()
+      $('#inputKey').attr('disabled', 'disabled')
     }
 
     let nowKey = 0
@@ -459,38 +482,50 @@
       startTimer()
     }
   }
-  function redeemKeys (key) {
-    const keys = key || getKeysByRE($jQuery('#inputKey').val().trim())
+  function redeemKeys(key) {
+    const keys = key || getKeysByRE($('#inputKey').val().trim())
     redeem(keys)
   }
 
-  function toggleUnusedKeyArea () {
+  function toggleUnusedKeyArea() {
     if (!selecter) {
-      if ($jQuery('#unusedKeyArea').is(':hidden')) {
-        $jQuery('#unusedKeyArea').show()
+      if ($('#unusedKeyArea').is(':hidden')) {
+        $('#unusedKeyArea').show()
       } else {
-        $jQuery('#unusedKeyArea').hide()
+        $('#unusedKeyArea').hide()
       }
     }
   }
 
-  function setting () {
+  function setting() {
     const setting = Object.prototype.toString.call(GM_getValue('setting')) === '[object Object]' ? GM_getValue('setting') : defaultSetting
-    const div = $jQuery(`
-<div id="hclonely-asf">
-<input type="checkbox" name="newTab" ${setting.newTab ? 'checked=checked' : ''} title="开启ASF激活后此功能无效"/><span title="开启ASF激活后此功能无效">新标签页激活</span><br/>
-<input type="checkbox" name="copyListen" ${setting.copyListen ? 'checked=checked' : ''} title="复制key时询问是否激活"/><span title="复制key时询问是否激活">开启复制捕捉</span>
-<input type="checkbox" name="selectListen" ${setting.selectListen ? 'checked=checked' : ''} title="选中key时显示激活图标"/><span title="选中key时显示激活图标">开启选中捕捉</span>
-<input type="checkbox" name="clickListen" ${setting.clickListen ? 'checked=checked' : ''} title="点击key时添加激活链接"/><span title="点击key时添加激活链接">开启点击捕捉</span><br/>
-<input type="checkbox" name="allKeyListen" ${setting.allKeyListen ? 'checked=checked' : ''} title="匹配页面内所有符合steam key格式的内容"/><span title="匹配页面内所有符合steam key格式的内容">捕捉页面内所有key</span>
-<div class="swal-title">ASF IPC设置</div>
-<span>ASF IPC协议</span><input type="text" name="asfProtocol" value='${setting.asfProtocol}' placeholder="http或https,默认为http"/><br/>
-<span>ASF IPC地址</span><input type="text" name="asfHost" value='${setting.asfHost}' placeholder="ip地址或域名,默认为127.0.0.1"/><br/>
-<span>ASF IPC端口</span><input type="text" name="asfPort" value='${setting.asfPort}' placeholder="默认1242"/><br/>
-<span>ASF IPC密码</span><input type="text" name="asfPassword" value='${setting.asfPassword}' placeholder="ASF IPC密码"/><br/>
-<span>ASF Bot名字</span><input type="text" name="asfBot" value='${setting.asfBot}' placeholder="ASF Bot name,可留空"/><br/>
-<input type="checkbox" name="asf" ${setting.asf ? 'checked=checked' : ''} title="此功能默认关闭新标签页激活"/><span title="此功能默认关闭新标签页激活">开启ASF激活</span>
-</div>`)[0]
+    const div = $(`
+      <div id="hclonely-asf">
+        <input type="checkbox" name="newTab" ${setting.newTab ? 'checked=checked' : ''} title="开启ASF激活后此功能无效"/>
+        <span title="开启ASF激活后此功能无效">新标签页激活</span>
+        <br/>
+        <input type="checkbox" name="copyListen" ${setting.copyListen ? 'checked=checked' : ''} title="复制key时询问是否激活"/>
+        <span title="复制key时询问是否激活">开启复制捕捉</span>
+        <input type="checkbox" name="selectListen" ${setting.selectListen ? 'checked=checked' : ''} title="选中key时显示激活图标"/>
+        <span title="选中key时显示激活图标">开启选中捕捉</span>
+        <input type="checkbox" name="clickListen" ${setting.clickListen ? 'checked=checked' : ''} title="点击key时添加激活链接"/>
+        <span title="点击key时添加激活链接">开启点击捕捉</  span><br/>
+        <input type="checkbox" name="allKeyListen" ${setting.allKeyListen ? 'checked=checked' : ''} title="匹配页面内所有符合steam key格式的内容"/>
+        <span title="匹配页面内所有符合steam key 格式的内容">捕捉页面内所有key</span>
+        <div class="swal-title">ASF IPC设置</div>
+        <span>ASF IPC协议</span><input type="text" name="asfProtocol" value='${setting.asfProtocol}' placeholder="http或https,默认为http"/>
+        <br/>
+        <span>ASF IPC地址</span><input type="text" name="asfHost" value='${setting.asfHost}' placeholder="ip地址或域名,默认为127.0.0.1"/>
+        <br/>
+        <span>ASF IPC端口</span><input type="text" name="asfPort" value='${setting.asfPort}' placeholder="默认1242"/>
+        <br/>
+        <span>ASF IPC密码</span><input type="text" name="asfPassword" value='${setting.asfPassword}' placeholder="ASF IPC密码"/>
+        <br/>
+        <span>ASF Bot名字</span><input type="text" name="asfBot" value='${setting.asfBot}' placeholder="ASF Bot name,可留空"/>
+        <br/>
+        <input type="checkbox" name="asf" ${setting.asf ? 'checked=checked' : ''} title="此功能默认关闭新标签页激活"/>
+        <span title="此功能默认关闭新标签页激活">开启ASF激活</span>
+      </div>`)[0]
 
     swal({
       closeOnClickOutside: false,
@@ -505,8 +540,8 @@
       .then((value) => {
         if (value) {
           const setting = {}
-          $jQuery('#hclonely-asf input').map(function () {
-            setting[$jQuery(this).attr('name')] = this.value === 'on' ? this.checked : this.value
+          $('#hclonely-asf input').map(function () {
+            setting[$(this).attr('name')] = this.value === 'on' ? this.checked : this.value
           })
           GM_setValue('setting', setting)
           swal({
@@ -521,7 +556,7 @@
         }
       })
   }
-  function asfSend (c = '') {
+  function asfSend(c = '') {
     if (Object.prototype.toString.call(GM_getValue('setting')) === '[object Object]' && GM_getValue('setting').asf) {
       swal({
         closeOnClickOutside: false,
@@ -564,16 +599,16 @@
             }).then((value) => {
               if (value) asfSend()
             })
-            $jQuery('table.hclonely button.swal-button').click(function () {
+            $('table.hclonely button.swal-button').click(function () {
               const setting = Object.prototype.toString.call(GM_getValue('setting')) === '[object Object]' ? GM_getValue('setting') : defaultSetting
-              const command = setting.asfBot ? $jQuery(this).parent().next().text().trim().replace(/<Bots>/gim, setting.asfBot) : $jQuery(this).parent().next().text().trim()
+              const command = setting.asfBot ? $(this).parent().next().text().trim().replace(/<Bots>/gim, setting.asfBot) : $(this).parent().next().text().trim()
               asfSend(command)
             })
             break
           case null:
             break
           default:
-            if (!$jQuery('.swal-content__input').val()) {
+            if (!$('.swal-content__input').val()) {
               swal({
                 closeOnClickOutside: false,
                 title: 'ASF指令不能为空！',
@@ -583,13 +618,15 @@
                 }
               }).then(() => { asfSend(c) })
             } else {
-              const v = value || $jQuery('.swal-content__input').val()
+              const v = value || $('.swal-content__input').val()
               if (v) asfRedeem(v)
             }
             break
         }
       })
-      if (c) $jQuery('.swal-content__input').val('!' + c)
+      if (c) {
+        $('.swal-content__input').val('!' + c)
+      }
     } else {
       swal({
         closeOnClickOutside: false,
@@ -603,21 +640,22 @@
     }
   }
 
-  function swalRedeem () {
+  function swalRedeem() {
     swal({
       closeOnClickOutside: false,
       className: 'swal-user',
       title: '请输入要激活的key:',
-      content: $jQuery('<textarea id=\'keyText\' class=\'asf-output\'></textarea>')[0],
+      content: $('<textarea id=\'keyText\' class=\'asf-output\'></textarea>')[0],
       buttons: {
         confirm: '激活',
         cancel: '返回'
       }
     }).then((value) => {
       if (value) {
-        const key = getKeysByRE($jQuery('#keyText').val())
-        if (key.length > 0) asfRedeem('!redeem ' + (GM_getValue('setting').asfBot ? (GM_getValue('setting').asfBot + ' ') : '') + key.join(','))
-        else {
+        const key = getKeysByRE($('#keyText').val())
+        if (key.length > 0) {
+          asfRedeem('!redeem ' + (GM_getValue('setting').asfBot ? (GM_getValue('setting').asfBot + ' ') : '') + key.join(','))
+        } else {
           swal({
             closeOnClickOutside: false,
             title: 'steam key不能为空！',
@@ -627,7 +665,9 @@
               cancel: '关闭'
             }
           }).then((value) => {
-            if (value) swalRedeem()
+            if (value) {
+              swalRedeem()
+            }
           })
         }
       } else {
@@ -635,7 +675,7 @@
       }
     })
   }
-  function asfTest () {
+  function asfTest() {
     const setting = GM_getValue('setting') || {}
     if (setting.asf) {
       swal({
@@ -703,6 +743,28 @@
               }
             })
           }
+        },
+        onabort: function () {
+          swal({
+            closeOnClickOutside: false,
+            title: 'ASF连接失败：aborted',
+            icon: 'error',
+            text: '连接地址 "' + setting.asfProtocol + '://' + setting.asfHost + ':' + setting.asfPort + '/Api/Command/"',
+            buttons: {
+              confirm: '确定'
+            }
+          })
+        },
+        ontimeout: function () {
+          swal({
+            closeOnClickOutside: false,
+            title: 'ASF连接失败：timeout',
+            icon: 'error',
+            text: '连接地址 "' + setting.asfProtocol + '://' + setting.asfHost + ':' + setting.asfPort + '/Api/Command/"',
+            buttons: {
+              confirm: '确定'
+            }
+          })
         }
       })
     } else {
@@ -717,19 +779,19 @@
     }
   }
 
-  function showHistory () {
+  function showHistory() {
     const history = GM_getValue('history')
     if (Array.isArray(history)) {
       swal({
         closeOnClickOutside: false,
         className: 'swal-user',
         title: '上次激活记录：',
-        content: $jQuery(history[0])[0],
+        content: $(history[0])[0],
         buttons: {
           confirm: '确定'
         }
       })
-      if (history[1]) $jQuery('.swal-content textarea').val(history[1])
+      if (history[1]) $('.swal-content textarea').val(history[1])
     } else {
       swal({
         closeOnClickOutside: false,
@@ -742,7 +804,7 @@
     }
   }
 
-  function showSwitchKey () {
+  function showSwitchKey() {
     swal({
       closeOnClickOutside: false,
       title: '请选择要转换成什么格式：',
@@ -750,11 +812,11 @@
         confirm: '确定',
         cancel: '关闭'
       },
-      content: $jQuery('<div class=\'switch-key\'><div class=\'switch-key-left\'><p>key</p><p>key</p><p>key</p><input name=\'keyType\' type=\'radio\' value=\'1\'/></div><div class=\'switch-key-right\'><p>&nbsp;</p><p>key,key,key</p><p>&nbsp;</p><input name=\'keyType\' type=\'radio\' value=\'2\'/></div></div>')[0]
+      content: $('<div class=\'switch-key\'><div class=\'switch-key-left\'><p>key</p><p>key</p><p>key</p><input name=\'keyType\' type=\'radio\' value=\'1\'/></div><div class=\'switch-key-right\'><p>&nbsp;</p><p>key,key,key</p><p>&nbsp;</p><input name=\'keyType\' type=\'radio\' value=\'2\'/></div></div>')[0]
     }).then((value) => {
       if (value) {
-        if ($jQuery('input:radio:checked').val()) {
-          showSwitchArea($jQuery('input:radio:checked').val())
+        if ($('input:radio:checked').val()) {
+          showSwitchArea($('input:radio:checked').val())
         } else {
           swal({
             closeOnClickOutside: false,
@@ -764,11 +826,11 @@
         }
       }
     })
-    function showSwitchArea (type) {
+    function showSwitchArea(type) {
       swal({
         closeOnClickOutside: false,
         title: '请输入要转换的key:',
-        content: $jQuery('<textarea style=\'width: 80%;height: 100px;\'></textarea>')[0],
+        content: $('<textarea style=\'width: 80%;height: 100px;\'></textarea>')[0],
         buttons: {
           confirm: '转换',
           back: '返回',
@@ -778,11 +840,11 @@
         if (value === 'back') {
           showSwitchKey(type)
         } else if (value) {
-          switchKey($jQuery('.swal-content textarea').val(), type)
+          switchKey($('.swal-content textarea').val(), type)
         }
       })
     }
-    function switchKey (key, type) {
+    function switchKey(key, type) {
       switch (type) {
         case '1':
           showKey(getKeysByRE(key).join('\n'), type)
@@ -794,12 +856,12 @@
           break
       }
     }
-    function showKey (key, type) {
+    function showKey(key, type) {
       swal({
         closeOnClickOutside: false,
         icon: 'success',
         title: '转换成功！',
-        content: $jQuery(`<textarea style='width: 80%;height: 100px;' value='${key}' readonly='readonly'>${key}</textarea>`)[0],
+        content: $(`<textarea style='width: 80%;height: 100px;' value='${key}' readonly='readonly'>${key}</textarea>`)[0],
         buttons: {
           confirm: '返回',
           cancel: '关闭'
@@ -809,16 +871,16 @@
           showSwitchArea(type)
         }
       })
-      $jQuery('.swal-content textarea').click(function () { this.select() })
+      $('.swal-content textarea').click(function () { this.select() })
     }
-    $jQuery('.switch-key div').map(function () {
-      $jQuery(this).click(function () {
-        $jQuery(this).find('input')[0].click()
+    $('.switch-key div').map(function () {
+      $(this).click(function () {
+        $(this).find('input')[0].click()
       })
     })
   }
 
-  function getKeysByRE (text) {
+  function getKeysByRE(text) {
     text = text.trim().toUpperCase()
     const reg = new RegExp('([0-9,A-Z]{5}-){2,4}[0-9,A-Z]{5}', 'g')
     const keys = []
@@ -831,14 +893,18 @@
     return keys
   }
 
-  function registerkey (key) {
+  function registerkey(key) {
     const setting = GM_getValue('setting')
     const keys = getKeysByRE(key)
-    if (setting.asf) asfRedeem('!redeem ' + (setting.asfBot ? (setting.asfBot + ' ') : '') + keys.join(','))
-    else if (setting.newTab) window.open('https://store.steampowered.com/account/registerkey?key=' + keys.join(','), '_blank')
-    else webRedeem(keys)
+    if (setting.asf) {
+      asfRedeem('!redeem ' + (setting.asfBot ? (setting.asfBot + ' ') : '') + keys.join(','))
+    } else if (setting.newTab) {
+      window.open('https://store.steampowered.com/account/registerkey?key=' + keys.join(','), '_blank')
+    } else {
+      webRedeem(keys)
+    }
   }
-  function asfRedeem (command) {
+  function asfRedeem(command) {
     const setting = GM_getValue('setting')
     const textarea = document.createElement('textarea')
     textarea.setAttribute('class', 'asf-output')
@@ -853,12 +919,12 @@
     }).then((v) => {
       if (/!redeem/gim.test(command)) {
         let value = ''
-        if ($jQuery('.swal-content textarea').length > 0) {
-          value = $jQuery('.swal-content textarea').val()
+        if ($('.swal-content textarea').length > 0) {
+          value = $('.swal-content textarea').val()
         }
-        GM_setValue('history', [$jQuery('.swal-content').html(), value])
+        GM_setValue('history', [$('.swal-content').html(), value])
         if (v) {
-          const unUseKey = $jQuery('.swal-content textarea').val().split(/[(\r\n)\r\n]+/).map(function (e) {
+          const unUseKey = $('.swal-content textarea').val().split(/[(\r\n)\r\n]+/).map(function (e) {
             if (/未使用/gim.test(e)) {
               return e
             }
@@ -904,11 +970,35 @@
             }
           })
         }
+      },
+      onabort: function () {
+        swal({
+          closeOnClickOutside: false,
+          className: 'swal-user',
+          title: '执行ASF指令(' + command + ')失败！请检查网络！',
+          text: 'aborted',
+          icon: 'error',
+          buttons: {
+            confirm: '关闭'
+          }
+        })
+      },
+      ontimeout: function () {
+        swal({
+          closeOnClickOutside: false,
+          className: 'swal-user',
+          title: '执行ASF指令(' + command + ')失败！请检查网络！',
+          text: '连接超时',
+          icon: 'error',
+          buttons: {
+            confirm: '关闭'
+          }
+        })
       }
     })
   }
-  function webRedeem (key) {
-    const div = $jQuery('<div id="registerkey_examples_text"><div class="notice_box_content" id="unusedKeyArea"> <b>未使用的Key：</b><br><div><ol id="unusedKeys" align="left"></ol></div></div><div class="table-responsive table-condensed"><table class="table table-hover hclonely"><caption><h2>激活记录</h2></caption><thead><th>No.</th><th>Key</th><th>结果</th><th>详情</th><th>Sub</th></thead><tbody></tbody></table></div><br></div>')[0]
+  function webRedeem(key) {
+    const div = $('<div id="registerkey_examples_text"><div class="notice_box_content" id="unusedKeyArea"> <b>未使用的Key：</b><br><div><ol id="unusedKeys" align="left"></ol></div></div><div class="table-responsive table-condensed"><table class="table table-hover hclonely"><caption><h2>激活记录</h2></caption><thead><th>No.</th><th>Key</th><th>结果</th><th>详情</th><th>Sub</th></thead><tbody></tbody></table></div><br></div>')[0]
     swal({
       closeOnClickOutside: false,
       className: 'swal-user',
@@ -929,12 +1019,12 @@
         }
       }).then((v) => {
         let value = ''
-        if ($jQuery('.swal-content textarea').length > 0) {
-          value = $jQuery('.swal-content textarea').val()
+        if ($('.swal-content textarea').length > 0) {
+          value = $('.swal-content textarea').val()
         }
-        GM_setValue('history', [$jQuery('.swal-content').html(), value])
+        GM_setValue('history', [$('.swal-content').html(), value])
         if (v) {
-          GM_setClipboard(arr(getKeysByRE($jQuery('#unusedKeys').text())).join(','))
+          GM_setClipboard(arr(getKeysByRE($('#unusedKeys').text())).join(','))
           swal({ title: '复制成功！', icon: 'success' })
         }
       })
@@ -971,12 +1061,12 @@
                 }
               }).then((v) => {
                 let value = ''
-                if ($jQuery('.swal-content textarea').length > 0) {
-                  value = $jQuery('.swal-content textarea').val()
+                if ($('.swal-content textarea').length > 0) {
+                  value = $('.swal-content textarea').val()
                 }
-                GM_setValue('history', [$jQuery('.swal-content').html(), value])
+                GM_setValue('history', [$('.swal-content').html(), value])
                 if (v) {
-                  GM_setClipboard(getKeysByRE($jQuery('#unusedKeys').text()).join(','))
+                  GM_setClipboard(getKeysByRE($('#unusedKeys').text()).join(','))
                   swal({ title: '复制成功！', icon: 'success' })
                 }
               })
@@ -998,11 +1088,11 @@
     }
   }
 
-  function redeemSub (e) {
-    const subText = e || document.getElementById('gameSub').value
+  function redeemSub(e) {
+    const subText = e || $('#gameSub').val()
     if (subText) {
       const ownedPackages = {}
-      $jQuery('.account_table a').each(function (i, el) {
+      $('.account_table a').each(function (i, el) {
         const match = el.href.match(/javascript:RemoveFreeLicense\( ([0-9]+), '/)
         if (match !== null) {
           ownedPackages[+match[1]] = true
@@ -1020,7 +1110,7 @@
           loaded++
           continue
         }
-        $jQuery.post('//store.steampowered.com/checkout/addfreelicense', {
+        $.post('//store.steampowered.com/checkout/addfreelicense', {
           action: 'add_to_cart',
           sessionid: g_sessionID,
           subid: packae
@@ -1047,28 +1137,26 @@
       }
     }
   }
-  function cc () {
+  function cc() {
     swal({
       closeOnClickOutside: false,
       icon: 'info',
       title: '正在获取当前国家/地区...'
     })
-    $jQuery.ajax({
+    $.ajax({
       url: '//store.steampowered.com/cart/',
       type: 'get',
       success: function (data) {
         if (data.match(/id="usercountrycurrency_trigger"[\w\W]*?>[w\W]*?<\/a/gim)) {
           const c = data.match(/id="usercountrycurrency_trigger".*?>(.*?)<\/a/i)?.[1]
-          // const thisC = data.match(/id="usercountrycurrency"[\w\W]*?value=".*?"/gim)[0].match(/value=".*?"/gim)[0].replace(/value="|"/g, '')
           const div = data.match(/<div class="currency_change_options">([\w\W]*?)<p/i)?.[1].trim() + '</div>'
-          // $jQuery("body").append(`<div id="nowCountry" class="ellipsis" data-country="${thisC}" style="font-size:20px;">转换商店和钱包&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;当前国家/地区：${c}</div><div style="padding:20px">${div}</div></div>`);
           swal({
             closeOnClickOutside: false,
             title: `当前国家/地区：${c}`,
-            content: $jQuery(`<div>${div}</div>`)[0]
+            content: $(`<div>${div}</div>`)[0]
           })
-          $jQuery('.currency_change_option').click(function () {
-            changeCountry($jQuery(this).attr('data-country'))
+          $('.currency_change_option').click(function () {
+            changeCountry($(this).attr('data-country'))
           })
         } else {
           swal('需要挂相应地区的梯子！', '', 'warning')
@@ -1079,13 +1167,13 @@
       }
     })
   }
-  function changeCountry (country) {
+  function changeCountry(country) {
     swal({
       closeOnClickOutside: false,
       icon: 'info',
       title: '正在更换国家/地区...'
     })
-    $jQuery.ajax({
+    $.ajax({
       url: '//store.steampowered.com/account/setcountry',
       type: 'post',
       data: {
@@ -1093,7 +1181,7 @@
         cc: country
       },
       complete: function () {
-        $jQuery.ajax({
+        $.ajax({
           url: '//store.steampowered.com/cart/',
           type: 'get',
           success: function (data) {
@@ -1106,10 +1194,10 @@
                 swal({
                   closeOnClickOutside: false,
                   title: `当前国家/地区：${c}`,
-                  content: $jQuery(`<div>${div}</div>`)[0]
+                  content: $(`<div>${div}</div>`)[0]
                 })
-                $jQuery('.currency_change_option').click(function () {
-                  changeCountry($jQuery(this).attr('data-country'))
+                $('.currency_change_option').click(function () {
+                  changeCountry($(this).attr('data-country'))
                 })
               })
             } else {
@@ -1124,11 +1212,11 @@
     })
   }
 
-  function redeemSubs () {
-    redeemSub($jQuery('#inputKey').val().trim())
+  function redeemSubs() {
+    redeemSub($('#inputKey').val().trim())
   }
 
-  function mouseClick ($, e) {
+  function mouseClick($, e) {
     const $i = $('<span/>').text('Steam Key')
     const x = e.pageX
     const y = e.pageY
@@ -1136,51 +1224,48 @@
     $('body').append($i)
     $i.animate({ top: y - 180, opacity: 0 }, 1500, () => { $i.remove() })
   }
-  function addBtn () {
-    const div = document.createElement('div')
-    div.setAttribute('id', 'keyDiv')
-    div.setAttribute('style', 'position:fixed;left:5px;bottom:5px')
-    const btn = document.createElement('button')
-    btn.setAttribute('id', 'allKey')
-    btn.setAttribute('key', '')
-    btn.setAttribute('style', 'display:none;z-index:9999')
-    btn.setAttribute('class', 'btn btn-default')
-    btn.innerText = '激活本页面所有key(共0个)'
+  function addBtn() {
+    const div = $(`<div id="keyDiv" style="position:fixed;left:5px;bottom:5px"></div>`)
+    const btn = $(`<button id="allKey" class="btn btn-default" key="" style="display:none;z-index:9999">激活本页面所有key(共0个)</button>`)[0]
     btn.onclick = function () {
       const setting = GM_getValue('setting')
-      const keys = getKeysByRE($jQuery(this).attr('key'))
-      if (setting.asf) asfRedeem('!redeem ' + setting.asfBot + ' ' + keys.join(','))
-      else if (setting.newTab) window.open('https://store.steampowered.com/account/registerkey?key=' + keys.join(','), '_blank')
-      else webRedeem(keys)
+      const keys = getKeysByRE($(this).attr('key'))
+      if (setting.asf) {
+        asfRedeem('!redeem ' + setting.asfBot + ' ' + keys.join(','))
+      } else if (setting.newTab) {
+        window.open('https://store.steampowered.com/account/registerkey?key=' + keys.join(','), '_blank')
+      } else {
+        webRedeem(keys)
+      }
     }
-    $jQuery('body').append(div)
-    div.appendChild(btn)
+    div.append(btn)
+    $('body').append(div)
     return btn
   }
-  function redeemAllKey () {
+  function redeemAllKey() {
     let len = 0
     let keyList = ''
     let hasKey = []
     const btn = addBtn()
     setInterval(function () {
-      const allSteamKey = arr(getKeysByRE($jQuery('body').text())) || []
+      const allSteamKey = arr(getKeysByRE($('body').text())) || []
       len = allSteamKey.length
       if (len > 0) {
         hasKey.push(...allSteamKey)
         hasKey = arr(hasKey)
         keyList = hasKey.join(',')
-        if ($jQuery(btn).attr('key') !== keyList) {
-          $jQuery(btn).attr('key', keyList)
-          $jQuery(btn).text('激活本页面所有key(共' + hasKey.length + '个)')
-          $jQuery(btn).show()
+        if ($(btn).attr('key') !== keyList) {
+          $(btn).attr('key', keyList)
+          $(btn).text('激活本页面所有key(共' + hasKey.length + '个)')
+          $(btn).show()
         }
       } else if (document.getElementById('allKey') && (document.getElementById('allKey').style.display === 'block')) {
-        $jQuery(btn).hide()
-        $jQuery(btn).text('激活本页面所有key(共0个)')
+        $(btn).hide()
+        $(btn).text('激活本页面所有key(共0个)')
       }
     }, 1000)
   }
-  function arr (arr) {
+  function arr(arr) {
     return [...new Set(arr)]
   }
-}($))
+}())
