@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Alienwarearena Daily Quest Helper
 // @namespace    Alienwarearena-Daily-Quest-Helper
-// @version      1.1.2
+// @version      1.1.3
 // @description  外星人网站自动每日任务（非美区）
 // @author       HCLonely
 // @iconURL      https://www.alienwarearena.com/favicon.ico
@@ -17,16 +17,16 @@
 // @grant        GM_registerMenuCommand
 // @run-at       document-end
 // @connect      alienwarearena.com
-// @require      https://greasyfork.org/scripts/388035-$jQuery/code/$jQuery.js?version=721233
+// @require      https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.slim.min.js
 // @require      https://greasyfork.org/scripts/376085-httpsend/code/httpSend.js?version=745978
 // @require      https://cdn.jsdelivr.net/npm/sweetalert@2.1.2/dist/sweetalert.min.js
 // @compatible   chrome 没有测试其他浏览器的兼容性
 // ==/UserScript==
 
-/* global GM_addStyle,swal,httpSend,GM_openInTab,$jQuery,location */
+/* global GM_addStyle,swal,httpSend,GM_openInTab,location */
 /* eslint-disable camelcase */
 
-(function ($) {
+(function () {
   'use strict'
 
   GM_addStyle(`
@@ -1081,4 +1081,4 @@ Use atleast 8 characters / 1 upper case letter / 1 lower case letter / 1 special
     })
   }
   GM_registerMenuCommand('任务匹配规则', changeRule)
-})($jQuery)
+})()
