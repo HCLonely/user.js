@@ -3,7 +3,7 @@
 // @namespace   HCLonely
 // @author      HCLonely
 // @description 复制网页中的Steamkey后自动激活，3.0+版本为Beta版
-// @version     3.1.2
+// @version     3.1.3
 // @supportURL  https://blog.hclonely.com/posts/71381355/
 // @homepage    https://blog.hclonely.com/posts/71381355/
 // @iconURL     https://blog.hclonely.com/img/avatar.jpg
@@ -107,7 +107,7 @@
       const $icon = $(icon)
       $('html').append(icon)
       $(document).mousedown(function (e) {
-        if (e.target === icon || (e.target.parentNode && e.target.parentNode === icon) || (e.target.parentNode.parentNode && e.target.parentNode.parentNode === icon)) { // 点击了激活图标
+        if (e.target === icon || e.target?.parentNode === icon || e.target?.parentNode?.parentNode === icon) { // 点击了激活图标
           e.preventDefault()
         }
       })
@@ -118,7 +118,7 @@
         }
       })
       $(document).mouseup(function (e) {
-        if (e.target === icon || (e.target.parentNode && e.target.parentNode === icon) || (e.target.parentNode.parentNode && e.target.parentNode.parentNode === icon)) { // 点击了激活图标
+        if (e.target === icon || && e.target?.parentNode === icon || e.target?.parentNode?.parentNode === icon) { // 点击了激活图标
           e.preventDefault()
           return false
         }
@@ -159,7 +159,7 @@
             })
           }
         } else if (/^!addlicense.*[\d]+$/gi.test(productKey)) {
-          if (Object.prototype.toString.call(GM_getValue('setting')) === '[object Object]' && GM_getValue('setting').asf && !$('div.swal-overlay').hasClass('swal-overlay--show-modal')) {
+          if (GM_getValue('setting')?.asf && !$('div.swal-overlay').hasClass('swal-overlay--show-modal')) {
             swal({
               closeOnClickOutside: false,
               className: 'swal-user',
@@ -209,16 +209,14 @@
         GM_setClipboard(arr(getKeysByRE($('#unusedKeys').text())).join(','))
         swal({ title: '复制成功！', icon: 'success' })
       })
-      $('.registerkey_input_box_text').parent().css('float', 'none')
-      $('.registerkey_input_box_text').parent().append(`
+      $('.registerkey_input_box_text').parent().css('float', 'none').append(`
       <textarea class="form-control" rows="3" id="inputKey" placeholder="支持批量激活，可以把整个网页文字复制过来&#10;若一次激活的Key的数量超过9个则会自动分批激活（等待20秒）&#10;激活多个SUB时每个SUB之间用英文逗号隔开" style="margin: 3px 0px 0px; width: 525px; height: 102px;"></textarea><br>`)
       if (/^https?:\/\/store\.steampowered\.com\/account\/registerkey\?key=.+/.test(url)) {
         $('#inputKey').val() = url.replace(/https?:\/\/store\.steampowered\.com\/account\/registerkey\?key=/i, '')
       }
       $('.registerkey_input_box_text,#purchase_confirm_ssa').hide()
 
-      $('#register_btn').parent().css('margin', '10px 0')
-      $('#register_btn').parent().append(`
+      $('#register_btn').parent().css('margin', '10px 0').append(`
         <a tabindex="300" class="btnv6_blue_hoverfade btn_medium" style="margin-left:0" id="redeemKey">
           <span>激活key</span>
         </a> &nbsp;&nbsp;
@@ -273,7 +271,7 @@
       if ($('body').length > 0) {
         $('body').click(function (event) {
           htmlEl = event.target// 鼠标每经过一个元素，就把该元素赋值给变量htmlEl
-          if ($(htmlEl).parents('.swal-overlay').length === 0 && htmlEl.tagName !== 'A' && htmlEl.tagName !== 'BUTTON' && htmlEl.getAttribute('type') !== 'button' && htmlEl.tagName !== 'TEXTAREA' && htmlEl.getAttribute('type') !== 'text') {
+          if ($(htmlEl).parents('.swal-overlay').length === 0 && !['A', 'BUTTON', 'TEXTAREA'].includes(htmlEl.tagName) && !['button', 'text'].includes(htmlEl.getAttribute('type'))) {
             if (($(htmlEl).children().length === 0 || !/([0-9,A-Z]{5}-){2,4}[0-9,A-Z]{5}/gim.test($.makeArray($(htmlEl).children().map(function () {
               return $(this).text()
             })).join(''))) && /([0-9,A-Z]{5}-){2,4}[0-9,A-Z]{5}/gim.test($(htmlEl).text())) {
@@ -296,7 +294,7 @@
     GM_addStyle(arsStatic.css)
 
     GM_registerMenuCommand('⚙设置', setting)
-    GM_registerMenuCommand('执行ASF指令', asfSend)
+    GM_registerMenuCommand('执行ASF指令', () => { asfSend() })
     GM_registerMenuCommand('查看上次激活记录', showHistory)
     GM_registerMenuCommand('Key格式转换', showSwitchKey)
     GM_registerMenuCommand('新版使用说明', () => { window.open('https://keylol.com/t344489-1-1', '_blank') })
@@ -498,7 +496,7 @@
   }
 
   function setting() {
-    const setting = Object.prototype.toString.call(GM_getValue('setting')) === '[object Object]' ? GM_getValue('setting') : defaultSetting
+    const setting = GM_getValue('setting') || defaultSetting
     const div = $(`
       <div id="hclonely-asf">
         <input type="checkbox" name="newTab" ${setting.newTab ? 'checked=checked' : ''} title="开启ASF激活后此功能无效"/>
@@ -557,7 +555,7 @@
       })
   }
   function asfSend(c = '') {
-    if (Object.prototype.toString.call(GM_getValue('setting')) === '[object Object]' && GM_getValue('setting').asf) {
+    if (GM_getValue('setting')?.asf) {
       swal({
         closeOnClickOutside: false,
         className: 'swal-user',
@@ -600,7 +598,7 @@
               if (value) asfSend()
             })
             $('table.hclonely button.swal-button').click(function () {
-              const setting = Object.prototype.toString.call(GM_getValue('setting')) === '[object Object]' ? GM_getValue('setting') : defaultSetting
+              const setting = GM_getValue('setting') || defaultSetting
               const command = setting.asfBot ? $(this).parent().next().text().trim().replace(/<Bots>/gim, setting.asfBot) : $(this).parent().next().text().trim()
               asfSend(command)
             })
@@ -1048,8 +1046,7 @@
             })
           } else {
             if (data.status === 200) {
-              const gSessionId = data.responseText.match(/g_sessionID = "(.+?)";/)
-              sessionID = gSessionId === null ? null : gSessionId[1]
+              sessionID = data.responseText.match(/g_sessionID = "(.+?)";/)?.[1]
               swal({
                 closeOnClickOutside: false,
                 className: 'swal-user',
@@ -1256,12 +1253,11 @@
         keyList = hasKey.join(',')
         if ($(btn).attr('key') !== keyList) {
           $(btn).attr('key', keyList)
-          $(btn).text('激活本页面所有key(共' + hasKey.length + '个)')
-          $(btn).show()
+          .text('激活本页面所有key(共' + hasKey.length + '个)')
+          .show()
         }
-      } else if (document.getElementById('allKey') && (document.getElementById('allKey').style.display === 'block')) {
-        $(btn).hide()
-        $(btn).text('激活本页面所有key(共0个)')
+      } else if (document.getElementById('allKey')?.style?.display === 'block') {
+        $(btn).hide().text('激活本页面所有key(共0个)')
       }
     }, 1000)
   }
