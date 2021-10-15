@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         bilibili勋章常亮
 // @namespace    bilibili-medal
-// @version      0.4
+// @version      0.5
 // @description  保持bilibili直播粉丝勋章常亮
 // @author       HCLonely
 // @include      https://link.bilibili.com/p/center/index
@@ -96,12 +96,12 @@
   function getroomsId() {
     return new Promise(resolve => {
       GM_xmlhttpRequest({
-        url: 'https://api.live.bilibili.com/fans_medal/v5/live_fans_medal/iApiMedal?page=1&pageSize=' + $('.tabnav-tip.plain').text(),
+        url: `https://api.live.bilibili.com/xlive/app-ucenter/v1/fansMedal/panel?page=1&page_size=${$('.tabnav-tip.plain').text()}&target_id=${$('#right-part a[href*="space.bilibili.com"]').attr('href').match(/[\d]+/)?.[0]}`,
         method: 'get',
         responseType: 'json',
         onload: data => {
           if (data.response.code === 0) {
-            resolve(data.response.data.fansMedalList.filter(e => e.roomid && e.today_intimacy < 100 && !blackList.includes(e.roomid)).map(e => [e.uname, e.roomid]).filter(e => e[1]))
+            resolve(data.response.data.list.filter(e => e.room_info?.room_id && e.medal.today_feed < 100 && !blackList.includes(e.room_info?.roomid)).map(e => [e.anchor_info?.nick_name, e.room_info?.room_id]).filter(e => e[1]))
           } else {
             resolve(false)
           }
