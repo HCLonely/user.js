@@ -3,7 +3,7 @@
 // @namespace   HCLonely
 // @author      HCLonely
 // @description 复制网页中的Steamkey后自动激活，3.0+版本为Beta版
-// @version     3.1.3
+// @version     3.1.4
 // @supportURL  https://blog.hclonely.com/posts/71381355/
 // @homepage    https://blog.hclonely.com/posts/71381355/
 // @iconURL     https://blog.hclonely.com/img/avatar.jpg
@@ -118,7 +118,7 @@
         }
       })
       $(document).mouseup(function (e) {
-        if (e.target === icon || && e.target?.parentNode === icon || e.target?.parentNode?.parentNode === icon) { // 点击了激活图标
+        if (e.target === icon || e.target?.parentNode === icon || e.target?.parentNode?.parentNode === icon) { // 点击了激活图标
           e.preventDefault()
           return false
         }
