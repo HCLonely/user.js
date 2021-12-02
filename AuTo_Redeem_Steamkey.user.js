@@ -118,7 +118,7 @@
         }
       })
       $(document).mouseup(function (e) {
-        if (e.target === icon || && e.target?.parentNode === icon || e.target?.parentNode?.parentNode === icon) { // 点击了激活图标
+        if (e.target === icon || e.target?.parentNode === icon || e.target?.parentNode?.parentNode === icon) { // 点击了激活图标
           e.preventDefault()
           return false
         }

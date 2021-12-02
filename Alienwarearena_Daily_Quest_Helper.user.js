@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Alienwarearena Daily Quest Helper
 // @namespace    Alienwarearena-Daily-Quest-Helper
-// @version      1.1.3
+// @version      1.1.4
 // @description  外星人网站自动每日任务（非美区）
 // @author       HCLonely
 // @iconURL      https://www.alienwarearena.com/favicon.ico
@@ -17,8 +17,8 @@
 // @grant        GM_registerMenuCommand
 // @run-at       document-end
 // @connect      alienwarearena.com
-// @require      https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.slim.min.js
-// @require      https://greasyfork.org/scripts/376085-httpsend/code/httpSend.js?version=745978
+// @require      https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js
+// @require      https://greasyfork.org/scripts/376085-httpsend/code/httpSend.js?version=975343
 // @require      https://cdn.jsdelivr.net/npm/sweetalert@2.1.2/dist/sweetalert.min.js
 // @compatible   chrome 没有测试其他浏览器的兼容性
 // ==/UserScript==
@@ -48,7 +48,7 @@
   `)
   $('#umCollapse').click(addPointer)
 
-  function addPointer () {
+  function addPointer() {
     if (!/^Complete/gi.test($('.profile-arp-status .quest-item-progress:first').text())) {
       $('.profile-arp-status .quest-title.text-info').css('cursor', ' pointer')
     }
@@ -100,7 +100,7 @@
       return a < b ? (a < c ? a : c) : (b < c ? b : c)
     }
   }
-  function toPercent (point) {
+  function toPercent(point) {
     var str = Number(point * 100).toFixed(2)
     str += '%'
     return str
@@ -128,7 +128,7 @@
       '/read all about it|read me/gim'
     ]
   }
-  function taskType (e) {
+  function taskType(e) {
     const rule = Object.assign(defaultRule, GM_getValue('rule'))
     let type = 'unknown'
     for (const [k, v] of Object.entries(rule)) {
@@ -148,7 +148,7 @@
     }
     return type
   }
-  async function finishTask (e) {
+  async function finishTask(e) {
     if (/^Complete/gi.test($('.profile-arp-status .quest-item-progress:first').text())) {
       swal('任务已完成！', '', 'success')
       return 0
@@ -275,7 +275,7 @@
       })
     }
   }
-  function isComplete (callback = false) {
+  function isComplete(callback = false) {
     swal({
       closeOnClickOutside: false,
       title: '正在检查任务完成状态...',
@@ -316,7 +316,7 @@
     })
   }
 
-  function changeBadge (text) {
+  function changeBadge(text) {
     swal({
       closeOnClickOutside: false,
       title: '正在获取Badge列表...',
@@ -352,7 +352,7 @@
       }
     })
   }
-  function share (text) {
+  function share(text) {
     swal({
       closeOnClickOutside: false,
       title: '正在获取帖子列表...',
@@ -386,7 +386,7 @@
       }
     })
   }
-  function changeBorder (text) {
+  function changeBorder(text) {
     swal({
       closeOnClickOutside: false,
       title: '正在获取Border列表...',
@@ -421,7 +421,7 @@
       }
     })
   }
-  function changeAvatar (text) {
+  function changeAvatar(text) {
     swal({
       closeOnClickOutside: false,
       title: '正在获取Avatar History列表...',
@@ -463,7 +463,7 @@
       }
     })
   }
-  function updateAboutMe (text) {
+  function updateAboutMe(text) {
     let aboutText = ''
     const aboutMeText = `Changing your username will log you out from all other computers/devices. Choose a strong password and don't reuse it on any other accounts.
 Use atleast 8 characters / 1 upper case letter / 1 lower case letter / 1 special character / 1 number. Don't use a password from another site, or something too obvious like (33333333, 12345678, abcdefg, pet name, birthdates).`
@@ -530,7 +530,7 @@ Use atleast 8 characters / 1 upper case letter / 1 lower case letter / 1 special
       }
     })
   }
-  function updateAbout (text, callback) {
+  function updateAbout(text, callback) {
     httpSend({
       type: 'post',
       url: '/account/about',
@@ -538,10 +538,10 @@ Use atleast 8 characters / 1 upper case letter / 1 lower case letter / 1 special
       callback: callback
     })
   }
-  function uploadVideo (text) {
+  function uploadVideo(text) {
     getApiKey(text)
   }
-  function getApiKey (text) {
+  function getApiKey(text) {
     swal({
       closeOnClickOutside: false,
       title: '正在获取token...',
@@ -591,7 +591,7 @@ Use atleast 8 characters / 1 upper case letter / 1 lower case letter / 1 special
       }
     })
   }
-  function getVideos (text, youtubeApiKey, token) {
+  function getVideos(text, youtubeApiKey, token) {
     const gameTrailer = ['_Nwdy0Iyh3c', '67lNLq9ExFA', 'at-oBQVptKA', 'ehjJ614QfeM', 'btvT_UN4hEg', 'YApuEWtG30w', 'fWdf1lET9-M', 'Zhfmz3rEehI', 'nMVLmvicHSI', 'lNUpyjezrCs', '9s2jjR0A42Y', 'FBFEksuk5gQ', 'MBb88gLmJZY', 'Vg0y9i5E7nY', 'acM1wCApEj0', 'isVtXH7n9lI', 'qF6dEQNUndo', '-p-0NlZ0UwE', 'BbSX0ahCyys', 'pYYfNmTS7ec', 'Kq5KWLqUewc', 'LDBojdBAjXU', '04KPiGmC7Lc', '_LTiEXMc5J0', 'TcMBFSGVi1c', 'd1GpIJ8Ui0c', '2dnhh3nFksg', '3DRARZQexW4&t=722s', 'NGmN6KXnXPM', 'fA1Mfh3LXs4', 'mTRbWwBwWok', 'd9Gu1PspA3Y', 'piIgkJWDuQg', '86V_A5oyy3E', '5kcdRBHM7kM&t=33s', 'JiEu23G4onM', 'uBYORdr_TY8', '-awUli1XdZ4', 'o77MzDQT1cg', 'auAQ_A--c5I', 'BIuuLBhDt9s', 'JMBY3iDh4so', 'WtOcbZG5xA4', 'J7Ivdq5E-fs', 'CbMF8vNV6Yc', 'HQDddZFwbSU', 'LTqczRnNqDc', 'w-Xe8gLBc5I', '4E1jVWUMQiA', 'lLfKgylPkm4', 't-N2oBNU6P8', 'rlR4PJn8b8I', '8939aURV9Dc', 'Fwq_2geuW-A', 'PT5yMfC9LQM', '-junD46e9Iw', 'pj5xgz7tJlE', 'oZ0Pt4VUquw', 'BY-R6NcnkbE', 'k4MYqFw2KYg', 'hVSpac8wx3I', 'FBFEksuk5gQ', 'zlBIZEaiTKs', 'Rx8pbCN1OcU', 'pYC44YPb_5k', 'C9VPnI34dPw', 'jv7vqCmt6wY', 'pdPIljbUQuo', 'GUTtULUy_Bw', 'BLWt9MQLVgU', 'fYV6HlYw-_w', 'XpMBxfqc67A', 'G7uiuahKm3M', 'uODKrZnGk7g', 'auYLrFYo5RY', 'ZZ_LLawhUI4', 'tL6CldIRowc', 'OzHpcyqP_LE', 'YwzHXvEX46Y', 'KyNYbVPSs38', 'YKYh92oU-uA', 'AwMpGIm1Dyo', '9ewiJJe_nYI', 'rrlxcTZAFJ8', 'nFBrgeSjj-0', 'b5W9t62t10I', 'gjeQxqFXnrU', 'FQ7WBnSvjIo', 'y-9_d3IT_yA', 'JfEfzko6iX8', 'ee1172yeqyE', 'YGzmdAVTtC0', 'tDpGS2ln19g', 'YfdGK_Pn_TM', 'UoTams2yc0s', 'QgW6xwr8AnU', '39RfnI_yjjE']
     const ingameMedia = ['5ZmrVvFQgnI', '5ZmrVvFQgnI', 'yYs4V-92pWw', 'yYs4V-92pWw', 'y34y3oCtGqk', 'y34y3oCtGqk', 'yvRuiXsfLHg', 'yvRuiXsfLHg', 'bPTC-5fyGDU', 'bPTC-5fyGDU', 'hK7Gm7xOcr8', 'hK7Gm7xOcr8', 'PMmuEjpTDWk', 'PMmuEjpTDWk', '0_Cgxy7N-V0', '0_Cgxy7N-V0', 'AfB5stadHtE', 'AfB5stadHtE', 'WtpZlhAZDHI', 'WtpZlhAZDHI', '3TXuVb-7vAw', '3TXuVb-7vAw', '1wkWV1QjpV8', '1wkWV1QjpV8', 'AKG7zUY1te4', 'AKG7zUY1te4', '5L1ZUyFf1iw', '5L1ZUyFf1iw', 'GWcYRJMqTUM', 'GWcYRJMqTUM', 'UmKhIRS9_Ns', 'UmKhIRS9_Ns', 'prxIBx_77gw', 'prxIBx_77gw', 'J63XvLI4fd4', 'J63XvLI4fd4', 'fpF8cFeUxoQ', 'fpF8cFeUxoQ', 'izPD0WSib0w', 'izPD0WSib0w', 'MycvZc-n31o', 'MycvZc-n31o', '_uZ--MtA-Hc', '_uZ--MtA-Hc', 'MvJc15I9wlo', 'MvJc15I9wlo', 'CW5oGRx9CLM', 'CW5oGRx9CLM', 'M5FqUyIVaVo', 'M5FqUyIVaVo', 'O8v5S1nhKzo', 'O8v5S1nhKzo', 'yM6-QVxIXTs', 'yM6-QVxIXTs', 'wHw3jSvZxNI', 'wHw3jSvZxNI', 'M1nAuPeLZpc', 'M1nAuPeLZpc', 'S8dmq5YIUoc', 'S8dmq5YIUoc', '9RX31XDR1nA', '9RX31XDR1nA', 'b87BdPVrTOk', 'b87BdPVrTOk', 'i3GmVHYoJNY', 'i3GmVHYoJNY', '4tbDcf-n1Xs', '4tbDcf-n1Xs', 'OZaFqY8UF6I', 'OZaFqY8UF6I', 'IlElgfH0Rb0', 'IlElgfH0Rb0', '15pi8vrUx9c', '15pi8vrUx9c', 'qFea5W8vvfI', 'qFea5W8vvfI', 'r-3iathMo7o', 'r-3iathMo7o', 'N6h6WZd1tEg', 'N6h6WZd1tEg', '-uWQoVMidUg', '-uWQoVMidUg', 'jwK4oKIKrts', 'jwK4oKIKrts', 'udCcUKevizI', 'udCcUKevizI', 'nJ8XTf8rEpk', 'nJ8XTf8rEpk', 'peRpJ4tqLsc', 'peRpJ4tqLsc', 'FBFEksuk5gQ', 'FBFEksuk5gQ', 'Pvakr7s7qc0', 'Pvakr7s7qc0', '5b41BQ23cnI', '5b41BQ23cnI', 'zu3wZ-_IKrM', 'zu3wZ-_IKrM', '-8e8bkRQd-U']
 
@@ -637,7 +637,7 @@ Use atleast 8 characters / 1 upper case letter / 1 lower case letter / 1 special
       }
     })
   }
-  function postVideo (text, id, title, description, token) {
+  function postVideo(text, id, title, description, token) {
     swal({
       closeOnClickOutside: false,
       title: '正在发布视频...',
@@ -673,7 +673,7 @@ Use atleast 8 characters / 1 upper case letter / 1 lower case letter / 1 special
       }
     })
   }
-  function readNews (text) {
+  function readNews(text) {
     let info = $('.quest-item-progress:first').text().split('/')
     if (!info[1]) info = [0, 1]
     swal({
@@ -697,7 +697,7 @@ Use atleast 8 characters / 1 upper case letter / 1 lower case letter / 1 special
       }
     })
 
-    function addNews (newsId, i, info) {
+    function addNews(newsId, i, info) {
       if (i < (parseInt(info[1]) - parseInt(info[0]))) {
         const j = i + 1 + parseInt(info[0])
         swal({
@@ -725,7 +725,7 @@ Use atleast 8 characters / 1 upper case letter / 1 lower case letter / 1 special
       }
     }
   }
-  function autoSearch (text, e) {
+  function autoSearch(text, e) {
     swal({
       closeOnClickOutside: false,
       title: '正在搜索任务相关帖子...',
@@ -807,7 +807,7 @@ Use atleast 8 characters / 1 upper case letter / 1 lower case letter / 1 special
       }
     })
   }
-  function comment (info, i, quest) {
+  function comment(info, i, quest) {
     const reply = ['hi', 'hello', 'nice', 'thanks']
     const url = '/comments/' + Math.max.apply(null, quest) + '/new/0'
     const num = i + parseInt(info[0])
@@ -866,7 +866,7 @@ Use atleast 8 characters / 1 upper case letter / 1 lower case letter / 1 special
       isComplete()
     }
   }
-  function find_post (quest, i, per, len) {
+  function find_post(quest, i, per, len) {
     // console.log(per);
     const ucfId = Math.max.apply(null, quest)
     $('.swal-text').html(`匹配度:${toPercent(per[String(ucfId)])}`)
@@ -960,7 +960,7 @@ Use atleast 8 characters / 1 upper case letter / 1 lower case letter / 1 special
       }
     })
   }
-  function changeRule () {
+  function changeRule() {
     swal({
       closeOnClickOutside: false,
       title: '任务匹配规则',
