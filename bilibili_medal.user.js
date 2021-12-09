@@ -51,7 +51,7 @@
             await delay(time)
           }
 
-          $('#sign-progress').parent().html('签到完成')
+          $('table.center-grid>tfoot').remove()
           // $('#sign-progress').text(++i)
         })
         $('.page-title').append(signBtn)
