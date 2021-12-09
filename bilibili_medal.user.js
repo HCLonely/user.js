@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         bilibili勋章常亮
 // @namespace    bilibili-medal
-// @version      0.5
+// @version      0.6
 // @description  保持bilibili直播粉丝勋章常亮
 // @author       HCLonely
 // @include      https://link.bilibili.com/p/center/index
@@ -32,7 +32,7 @@
         signBtn.click(async () => {
           $('.text-ctnr').remove()
           $('table.center-grid>thead>tr').html('<td data-v-3895bb76="" width="160" style="padding-left: 60px;">主播昵称</td><td data-v-3895bb76="" width="160">直播间</td><td data-v-3895bb76="" width="120">签到结果</td>')
-          $('table.center-grid>tbody').html('')
+          $('table.center-grid>tbody').html('').after('<tfoot><tr><td colspan="3"><font id="delay-time">0</font> 秒后进行下一个房间签到</td></tr></tfoot>')
           const allRooms = whiteList.length > 0 ? whiteList : await getroomsId()
           for (let i = 0; i < allRooms.length; i++) {
             if (allRooms[i][1] < 100000) {
@@ -44,10 +44,15 @@
           $('nav.tabnav').append(`<section class="tabnav-item"><div class="tabnav-content">签到进度：${rooms.length} / <span id="sign-progress" class="tabnav-tip plain">${i}</span></div></section>`)
           for (const room of rooms) {
             await sendBiliMsg(room)
-            await delay(parseInt(Math.random() * (10000 - 6000 + 1) + 6000, 10))
-            $('#sign-progress').text(++i)
+            i += 1;
+            $('#sign-progress').text(i)
+            const time = parseInt(Math.random() * (10000 - 6000 + 1) + 6000, 10)
+            $('#delay-time').text(time / 1000)
+            await delay(time)
           }
-          $('#sign-progress').text(++i)
+
+          $('#sign-progress').parent().html('签到完成')
+          // $('#sign-progress').text(++i)
         })
         $('.page-title').append(signBtn)
       }
@@ -101,7 +106,7 @@
         responseType: 'json',
         onload: data => {
           if (data.response.code === 0) {
-            resolve(data.response.data.list.filter(e => e.room_info?.room_id && e.medal.today_feed < 100 && !blackList.includes(e.room_info?.roomid)).map(e => [e.anchor_info?.nick_name, e.room_info?.room_id]).filter(e => e[1]))
+            resolve([...data.response.data.list, ...data.response.data.special_list].filter(e => e.room_info?.room_id && e.medal.today_feed < 100 && !blackList.includes(e.room_info?.roomid)).map(e => [e.anchor_info?.nick_name, e.room_info?.room_id]).filter(e => e[1]))
           } else {
             resolve(false)
           }
