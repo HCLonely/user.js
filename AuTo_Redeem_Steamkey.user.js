@@ -3,7 +3,7 @@
 // @namespace   HCLonely
 // @author      HCLonely
 // @description 复制网页中的Steamkey后自动激活，3.0+版本为Beta版
-// @version     3.1.5
+// @version     3.1.6
 // @supportURL  https://blog.hclonely.com/posts/71381355/
 // @homepage    https://blog.hclonely.com/posts/71381355/
 // @iconURL     https://blog.hclonely.com/img/avatar.jpg
@@ -212,7 +212,7 @@
       $('.registerkey_input_box_text').parent().css('float', 'none').append(`
       <textarea class="form-control" rows="3" id="inputKey" placeholder="支持批量激活，可以把整个网页文字复制过来&#10;若一次激活的Key的数量超过9个则会自动分批激活（等待20秒）&#10;激活多个SUB时每个SUB之间用英文逗号隔开" style="margin: 3px 0px 0px; width: 525px; height: 102px;"></textarea><br>`)
       if (/^https?:\/\/store\.steampowered\.com\/account\/registerkey\?key=.+/.test(url)) {
-        $('#inputKey').val() = url.replace(/https?:\/\/store\.steampowered\.com\/account\/registerkey\?key=/i, '')
+        $('#inputKey').val(url.replace(/https?:\/\/store\.steampowered\.com\/account\/registerkey\?key=/i, ''))
       }
       $('.registerkey_input_box_text,#purchase_confirm_ssa').hide()
 

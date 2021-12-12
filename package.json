@@ -7,7 +7,8 @@
     "test": "standard Alienwarearena_Daily_Quest_Helper.user.js --fix",
     "itch": "standard Redeem_itch.io.user.js --fix",
     "blbl": "standard bilive_skin_custom.user.js --fix",
-    "babel:gist": "babel require/gistSync.js -o require/gistSync.user.js"
+    "babel:gist": "babel require/gistSync.js -o require/gistSync.user.js",
+    "babel": "babel *.user.js --out-dir compatibility"
   },
   "repository": {
     "type": "git",
