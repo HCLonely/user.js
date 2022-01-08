@@ -3,8 +3,8 @@
 // @namespace   HCLonely
 // @author      HCLonely
 // @description 复制网页中的Steamkey后自动激活，3.0+版本为Beta版
-// @version     3.1.6
-// @supportURL  https://blog.hclonely.com/posts/71381355/
+// @version     3.1.7
+// @supportURL  https://keylol.com/t344489-1-1
 // @homepage    https://blog.hclonely.com/posts/71381355/
 // @iconURL     https://blog.hclonely.com/img/avatar.jpg
 // @updateURL   https://github.com/HCLonely/user.js/raw/master/AuTo_Redeem_Steamkey.user.js
@@ -295,9 +295,9 @@
 
     GM_registerMenuCommand('⚙设置', setting)
     GM_registerMenuCommand('执行ASF指令', () => { asfSend() })
-    GM_registerMenuCommand('查看上次激活记录', showHistory)
-    GM_registerMenuCommand('Key格式转换', showSwitchKey)
-    GM_registerMenuCommand('新版使用说明', () => { window.open('https://keylol.com/t344489-1-1', '_blank') })
+    // GM_registerMenuCommand('查看上次激活记录', showHistory)
+    // GM_registerMenuCommand('Key格式转换', showSwitchKey)
+    // GM_registerMenuCommand('使用说明', () => { window.open('https://keylol.com/t344489-1-1', '_blank') })
   } catch (e) {
     swal('AuTo Redeem Steamkey脚本执行出错，详情请查看控制台！', e.stack, 'error')
     console.error(e)
@@ -531,12 +531,14 @@
       title: '全局设置',
       content: div,
       buttons: {
-        confirm: '保存',
+        save: '保存',
+        showHistory: '上次激活记录',
+        showSwitchKey: 'Key格式转换',
         cancel: '取消'
       }
     })
       .then((value) => {
-        if (value) {
+        if (value === 'save') {
           const setting = {}
           $('#hclonely-asf input').map(function () {
             setting[$(this).attr('name')] = this.value === 'on' ? this.checked : this.value
@@ -551,6 +553,10 @@
               confirm: '确定'
             }
           })
+        } else if (value === 'showHistory') {
+          showHistory();
+        } else if (value === 'showSwitchKey') {
+          showSwitchKey();
         }
       })
   }
