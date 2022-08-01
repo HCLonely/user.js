@@ -8,7 +8,8 @@
     "itch": "standard Redeem_itch.io.user.js --fix",
     "blbl": "standard bilive_skin_custom.user.js --fix",
     "babel:gist": "babel require/gistSync.js -o require/gistSync.user.js",
-    "babel": "babel *.user.js --out-dir compatibility"
+    "babel": "babel *.user.js --out-dir compatibility",
+    "ars": "webpack --config ./Auto_Redeem_Steamkey/webpack.config.js"
   },
   "repository": {
     "type": "git",
@@ -25,24 +26,18 @@
     "@babel/core": "^7.14.3",
     "@babel/plugin-transform-runtime": "^7.14.3",
     "@babel/preset-env": "^7.14.2",
-    "standard": "^14.3.4"
-  },
-  "standard": {
-    "global": [
-      "$",
-      "jQuery",
-      "GM_xmlhttpRequest",
-      "GM_registerMenuCommand",
-      "GM_openInTab",
-      "GM_addStyle",
-      "GM_setValue",
-      "GM_getValue",
-      "GM_setClipboard",
-      "unsafeWindow",
-      "Swal"
-    ],
-    "ignore": [
-      "*.user.js"
-    ]
+    "@types/jquery": "^3.5.13",
+    "@typescript-eslint/eslint-plugin": "^5.11.0",
+    "@typescript-eslint/parser": "^5.11.0",
+    "babel-loader": "^8.2.3",
+    "eslint": "^8.7.0",
+    "sweetalert2": "^11.4.0",
+    "terser-webpack-plugin": "^5.3.1",
+    "ts-loader": "^9.2.6",
+    "typescript": "^4.5.5",
+    "uglify-js": "^3.15.1",
+    "webpack": "^5.68.0",
+    "webpack-cli": "^4.9.2",
+    "webpackbar": "^5.0.2"
   }
 }
