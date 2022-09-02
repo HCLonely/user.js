@@ -176,7 +176,7 @@
     "max-len": [
       "error",
       {
-        "code": 200
+        "code": 300
       }
     ],
     "block-spacing": "error",

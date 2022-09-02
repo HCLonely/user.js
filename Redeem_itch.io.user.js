@@ -1,7 +1,8 @@
+/* eslint-disable max-len,no-plusplus,no-param-reassign,new-cap,func-style */
 // ==UserScript==
 // @name         Redeem itch.io
 // @namespace    Redeem-itch.io
-// @version      1.3.6
+// @version      1.3.7
 // @description  自动领取itch.io key链接和免费itch.io游戏
 // @author       HCLonely
 // @iconURL      https://itch.io/favicon.ico
@@ -10,6 +11,7 @@
 // @include      *://www.steamgifts.com/discussion/*
 // @include      *://www.reddit.com/r/*
 // @include      *://new.isthereanydeal.com/deals/*
+// @include      *://freegames.codes/game/*
 // @supportURL   https://blog.hclonely.com/posts/578f9be7/
 // @homepage     https://blog.hclonely.com/posts/578f9be7/
 // @require      https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.slim.min.js
@@ -30,231 +32,233 @@
 /* eslint-disable camelcase */
 
 (function () {
-  'use strict'
+  'use strict';
 
-  const closeWindow = true // 领取完成后自动关闭页面，改为'false'则为不自动关闭
-  const url = window.location.href
+  const closeWindow = true; // 领取完成后自动关闭页面，改为'false'则为不自动关闭
+  const url = window.location.href;
 
   /** *************************自动领取itch.io游戏链接***************************/
   if (/^https?:\/\/[\w\W]{1,}\.itch\.io\/[\w]{1,}(-[\w]{1,}){0,}\/download\/[\w\W]{0,}/i.test(url)) {
-    $('button.button').map(function (i, e) {
-      if (/link|claim|链接/gim.test($(e).text())) e.click()
-      return e
-    })
-    if ((/This page is linked|此页面已链接到帐户/gim.test($('div.inner_column').text()) || $('a.button.download_btn[data-upload_id]').length > 0) && closeWindow === 1) closePage()
+    $('button.button').map((i, e) => {
+      if (/link|claim|链接/gim.test($(e).text())) e.click();
+      return e;
+    });
+    if ((/This page is linked|此页面已链接到帐户/gim.test($('div.inner_column').text()) || $('a.button.download_btn[data-upload_id]').length > 0) && closeWindow === 1) closePage();
   }
 
   /** *********************领取免费itch.io游戏***************************/
   if (/^https?:\/\/.*?itch\.io\/.*?\/purchase(\?.*?)?$/.test(url) && /No thanks, just take me to the downloads|不用了，请带我去下载页面/i.test($('a.direct_download_btn').text())) {
-    $('a.direct_download_btn')[0].click()
-  } else if ($('.purchase_banner_inner').length === 0 && (/0\.00/gim.test($('.button_message').eq(0).find('.dollars[itemprop]').text()) || /0\.00/gim.test($('.money_input').attr('placeholder')) || /自己出价|Name your own price/gim.test($('.button_message').eq(0).find('.buy_message').text()))) {
-    $('.buy_btn').after(`<a data-itch-href="${$('.buy_btn').attr('href')}" href="javascript:void(0)" onclick="redeemItchGame(this)" target="_self" class="button" one-link-mark="yes" title="仅支持免费游戏">后台领取</a>`)
+    $('a.direct_download_btn')[0].click();
+  } else if ($('.purchase_banner_inner').length === 0 && (/0\.00/gim.test($('.button_message').eq(0)
+    .find('.dollars[itemprop]')
+    .text()) || /0\.00/gim.test($('.money_input').attr('placeholder')) || /自己出价|Name your own price/gim.test($('.button_message').eq(0)
+    .find('.buy_message')
+    .text()))) {
+    $('.buy_btn').after(`<a data-itch-href="${$('.buy_btn').attr('href')}" href="javascript:void(0)" onclick="redeemItchGame(this)" target="_self" class="button" one-link-mark="yes" title="仅支持免费游戏">后台领取</a>`);
   }
 
   /** **********************限时免费游戏包*****************************/
   if (/https?:\/\/itch.io\/s\/[\d]{1,}\/[\w\W]{1,}/.test(url)) {
-    $('.promotion_buy_row .buy_game_btn').after('<button id="redeem-itch-io" class="button" style="font-size:18px;letter-spacing:0.025em;line-height:36px;height:40px;padding:0 20px;margin:0 16px">后台领取</button>')
+    $('.promotion_buy_row .buy_game_btn').after('<button id="redeem-itch-io" class="button" style="font-size:18px;letter-spacing:0.025em;line-height:36px;height:40px;padding:0 20px;margin:0 16px">后台领取</button>');
     $('#redeem-itch-io').click(async () => {
-      const gameLink = $('.thumb_link.game_link')
+      const gameLink = $('.thumb_link.game_link');
       for (const e of gameLink) {
-        await redeemGame(e)
+        await redeemGame(e);
       }
-    })
+    });
   }
 
   /** **********************后台领取游戏*****************************/
-  if (['keylol.com', 'www.steamgifts.com', 'www.reddit.com', 'new.isthereanydeal.com'].includes(window.location.hostname)) {
-    addRedeemBtn()
-    const observer = new MutationObserver(addRedeemBtn)
+  if (['keylol.com', 'www.steamgifts.com', 'www.reddit.com', 'new.isthereanydeal.com', 'freegames.codes'].includes(window.location.hostname)) {
+    addRedeemBtn();
+    const observer = new MutationObserver(addRedeemBtn);
     observer.observe(document.documentElement, {
       attributes: true,
       characterData: true,
       childList: true,
       subtree: true
-    })
+    });
   }
-  function addRedeemBtn () {
+  function addRedeemBtn() {
     for (const e of $('a[href*="itch.io"]:not(".redeem-itch-game")')) {
-      $(e).addClass('redeem-itch-game').after(`<a data-itch-href="${$(e).attr('href')}" href="javascript:void(0)" onclick="redeemItchGame(this)" target="_self" style="margin-left:10px !important;">领取</a>`)
+      $(e).addClass('redeem-itch-game')
+        .after(`<a ${window.location.hostname === 'freegames.codes' ? 'class="details__buy" ' : ''}data-itch-href="${$(e).attr('href')}" href="javascript:void(0)" onclick="redeemItchGame(this)" target="_self" style="margin-${window.location.hostname === 'freegames.codes' ? 'top' : 'left'}:10px !important;">领取</a>`);
     }
   }
   GM_registerMenuCommand('提取所有链接', async () => {
-    log('正在提取链接，请稍候...')
-    let gamesLink = []
+    log('正在提取链接，请稍候...');
+    let gamesLink = [];
     for (const e of $('a[href*="itch.io"]:not(".itch-io-game-link-owned"):not([href*="itch.io/b/"]):not([href*="itch.io/c/"])')) {
-      const links = await getUrlLink(e)
-      gamesLink = [...gamesLink, ...links]
+      const links = await getUrlLink(e);
+      gamesLink = [...gamesLink, ...links];
     }
-    gamesLink = [...new Set(gamesLink)]
+    gamesLink = [...new Set(gamesLink)];
     for (const e of gamesLink) {
-      await isOwn(e)
+      await isOwn(e);
     }
-    log('全部领取完成！', 'success')
-  })
-  unsafeWindow.redeemItchGame = redeemGame
-  function closePage () {
-    window.close()
+    log('全部领取完成！', 'success');
+  });
+  unsafeWindow.redeemItchGame = redeemGame;
+  function closePage() {
+    window.close();
   }
-  function log (e, c) {
-    if (typeof e !== 'string') return console.log(e)
+  function log(e, c) {
+    if (typeof e !== 'string') return console.log(e);
     Swal[$('.swal2-container').length > 0 ? 'update' : 'fire']({
       title: e,
       icon: c || 'info',
       customClass: {
         title: 'break-all'
       }
-    })
-    let color = 'color:'
+    });
+    let color = 'color:';
     switch (c) {
-      case 'success':
-        color += 'green'
-        break
-      case 'warning':
-        color += 'blue'
-        break
-      case 'info':
-        color += 'yellow'
-        break
-      case 'error':
-        color += 'red'
-        break
-      default:
-        color += 'black'
+    case 'success':
+      color += 'green';
+      break;
+    case 'warning':
+      color += 'blue';
+      break;
+    case 'info':
+      color += 'yellow';
+      break;
+    case 'error':
+      color += 'red';
+      break;
+    default:
+      color += 'black';
     }
-    console.log('%c' + e, color)
+    console.log(`%c${e}`, color);
   }
 
-  async function getUrlLink (e) {
-    let url = ''
+  async function getUrlLink(e) {
+    let url = '';
     if ($(e).attr('data-itch-href')) {
-      url = $(e).attr('data-itch-href')
+      url = $(e).attr('data-itch-href');
     } else {
-      if ($(e).hasClass('itch-io-game-link-owned')) return []
-      url = $(e).attr('href')
+      if ($(e).hasClass('itch-io-game-link-owned')) return [];
+      url = $(e).attr('href');
     }
-    log('正在处理游戏/优惠包链接: <br/>' + url)
+    log(`正在处理游戏/优惠包链接: <br/>${url}`);
     if (/https?:\/\/itch.io\/s\/[\d]+\/.+/.test(url)) {
-      log('正在获取优惠包信息...<br/>' + url)
+      log(`正在获取优惠包信息...<br/>${url}`);
       const data = await httpRequest({
         url,
         method: 'get'
-      })
+      });
 
       if (data.status === 200) {
         if (data.responseText.includes('not_active_notification')) {
-          log('活动已结束！', 'error')
-          return []
-        } else {
-          const gamesLink = []
-          const games = $(data.responseText).find('.game_grid_widget.promo_game_grid a.thumb_link.game_link')
-          for (const e of games) {
-            gamesLink.push(e.href.replace(/\/$/, ''))
-          }
-          return gamesLink
+          log('活动已结束！', 'error');
+          return [];
         }
-      } else {
-        log('请求失败！', 'error')
-        log(data)
-        return []
+        const gamesLink = [];
+        const games = $(data.responseText).find('.game_grid_widget.promo_game_grid a.thumb_link.game_link');
+        for (const e of games) {
+          gamesLink.push(e.href.replace(/\/$/, ''));
+        }
+        return gamesLink;
       }
+      log('请求失败！', 'error');
+      log(data);
+      return [];
     } else if (/^https?:\/\/.+?\.itch\.io\/[^/]+?(\/purchase)?$/.test(url)) {
-      return [url.replace('/purchase', '').replace(/\/$/, '')]
-    } else {
-      return []
+      return [url.replace('/purchase', '').replace(/\/$/, '')];
     }
+    return [];
   }
-  async function redeemGame (e) {
-    let url = ''
+  async function redeemGame(e) {
+    let url = '';
     if ($(e).attr('data-itch-href')) {
-      url = $(e).attr('data-itch-href')
+      url = $(e).attr('data-itch-href');
     } else {
-      if ($(e).hasClass('itch-io-game-link-owned')) return
-      url = $(e).attr('href')
+      if ($(e).hasClass('itch-io-game-link-owned')) return;
+      url = $(e).attr('href');
     }
-    log('当前游戏/优惠包链接: <br/>' + url)
+    log(`当前游戏/优惠包链接: <br/>${url}`);
     if (/https?:\/\/itch.io\/s\/[\d]+\/.+/.test(url)) {
-      log('正在获取优惠包信息...<br/>' + url)
+      log(`正在获取优惠包信息...<br/>${url}`);
       const data = await httpRequest({
         url,
         method: 'get'
-      })
+      });
       if (data.status === 200) {
         if (data.responseText.includes('not_active_notification')) {
-          log('活动已结束！', 'error')
+          log('活动已结束！', 'error');
         } else {
-          const games = $(data.responseText).find('.game_grid_widget.promo_game_grid a.thumb_link.game_link')
+          const games = $(data.responseText).find('.game_grid_widget.promo_game_grid a.thumb_link.game_link');
           for (const e of games) {
-            await isOwn(e.href)
+            await isOwn(e.href);
           }
         }
       } else {
-        log('请求失败！', 'error')
-        log(data)
+        log('请求失败！', 'error');
+        log(data);
       }
     } else if (/^https?:\/\/.+?\.itch\.io\/[^/]+?(\/purchase)?$/.test(url)) {
-      await isOwn(url.replace('/purchase', ''))
+      await isOwn(url.replace('/purchase', ''));
     }
   }
-  async function isOwn (url) {
-    log('当前游戏链接: <br/>' + url)
-    log('正在检测游戏是否拥有...<br/>' + url)
+  async function isOwn(url) {
+    log(`当前游戏链接: <br/>${url}`);
+    log(`正在检测游戏是否拥有...<br/>${url}`);
     const data = await httpRequest({
       url,
       method: 'get'
-    })
+    });
     if (data.status === 200) {
       if (data.responseText.includes('purchase_banner_inner')) {
-        log('游戏已拥有！', 'success')
+        log('游戏已拥有！', 'success');
       } else {
-        await purchase(url)
+        await purchase(url);
       }
     } else {
-      log('请求失败！', 'error')
-      log(data)
+      log('请求失败！', 'error');
+      log(data);
     }
   }
-  async function purchase (url) {
-    log('正在加载购买页面...<br/>' + url)
+  async function purchase(url) {
+    log(`正在加载购买页面...<br/>${url}`);
     const data = await httpRequest({
-      url: url + '/purchase',
+      url: `${url}/purchase`,
       method: 'get'
-    })
+    });
     if (data.status === 200) {
-      const html = $(data.responseText)
+      const html = $(data.responseText);
       if (/0\.00/gim.test(html.find('.button_message:first .dollars[itemprop]').text()) || /0\.00/gim.test(html.find('.money_input').attr('placeholder')) || /自己出价|Name your own price/gim.test(html.find('.button_message:first .buy_message').text())) {
-        const csrf_token = html.find('[name="csrf_token"]').val()
-        const reward_id = html.find('[name="reward_id"]').val()
-        await download(url, csrf_token, reward_id)
+        const csrf_token = html.find('[name="csrf_token"]').val();
+        const reward_id = html.find('[name="reward_id"]').val();
+        await download(url, csrf_token, reward_id);
       } else {
-        log('价格不为 0, 可能活动已结束！', 'error')
+        log('价格不为 0, 可能活动已结束！', 'error');
       }
     } else {
-      log('请求失败！', 'error')
-      log(data)
+      log('请求失败！', 'error');
+      log(data);
     }
   }
-  async function download (url, csrf_token, reward_id) {
-    log('正在请求下载页面...<br/>' + url)
+  async function download(url, csrf_token, reward_id) {
+    log(`正在请求下载页面...<br/>${url}`);
     const data = await httpRequest({
-      url: url + '/download_url',
+      url: `${url}/download_url`,
       method: 'post',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
       },
-      data: `csrf_token=${encodeURIComponent(csrf_token)}${reward_id ? ('&reward_id=' + reward_id) : ''}`,
+      data: `csrf_token=${encodeURIComponent(csrf_token)}${reward_id ? (`&reward_id=${reward_id}`) : ''}`,
       responseType: 'json'
-    })
+    });
     if (data.status === 200 && data.response && data.response.url) {
-      await loadDownload(data.response.url, url)
+      await loadDownload(data.response.url, url);
     } else {
-      log('请求失败！', 'error')
-      log(data)
+      log('请求失败！', 'error');
+      log(data);
     }
   }
 
-  async function loadDownload (e, referer) {
-    log('正在加载下载页面...')
-    const url = new URL(e)
+  async function loadDownload(e, referer) {
+    log('正在加载下载页面...');
+    const url = new URL(e);
     const data = await httpRequest({
       url: url.href,
       method: 'get',
@@ -274,34 +278,34 @@
         'Upgrade-Insecure-Requests': 1,
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4164.2 Safari/537.36'
       }
-    })
+    });
     if (data.status === 200 && data.responseText) {
-      const html = $(data.responseText)
-      const claimBtn = html.find('button.button:contains("Link"),button.button:contains("Claim"),button.button:contains("链接")')
-      const form = html.find('form[action*="claim-key"]')
+      const html = $(data.responseText);
+      const claimBtn = html.find('button.button:contains("Link"),button.button:contains("Claim"),button.button:contains("链接")');
+      const form = html.find('form[action*="claim-key"]');
       if (/This page is linked|此页面已链接到帐户/gim.test(html.find('div.inner_column').text()) || html.find('a.button.download_btn[data-upload_id]').length > 0) {
-        log('领取成功！', 'success')
+        log('领取成功！', 'success');
       } else if (form.length > 0) {
-        const url = form.attr('action')
-        const csrf_token = form.find('input[name="csrf_token"]').val()
-        await claimame(url, csrf_token, url.href)
+        const url = form.attr('action');
+        const csrf_token = form.find('input[name="csrf_token"]').val();
+        await claimame(url, csrf_token, url.href);
       } else if (claimBtn.length > 0 && claimBtn.parents('form').length > 0) {
-        const form = claimBtn.parents('form')
-        const url = form.attr('action')
-        const csrf_token = form.find('input[name="csrf_token"]').val()
-        await claimame(url, csrf_token, url.href)
+        const form = claimBtn.parents('form');
+        const url = form.attr('action');
+        const csrf_token = form.find('input[name="csrf_token"]').val();
+        await claimame(url, csrf_token, url.href);
       } else {
-        log('领取完成，结果未知！', 'success')
+        log('领取完成，结果未知！', 'success');
       }
     } else {
-      log('请求失败！', 'error')
-      log(data)
+      log('请求失败！', 'error');
+      log(data);
     }
-    if (typeof checkItchGame === 'function') checkItchGame()
+    if (typeof checkItchGame === 'function') checkItchGame();
   }
-  async function claimame (e, token, referer) {
-    log('正在领取游戏...')
-    const url = new URL(e)
+  async function claimame(e, token, referer) {
+    log('正在领取游戏...');
+    const url = new URL(e);
     const data = await httpRequest({
       url: url.href,
       method: 'post',
@@ -325,38 +329,39 @@
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4164.2 Safari/537.36'
       },
       data: `csrf_token=${encodeURIComponent(token)}`
-    })
+    });
     if (data.status === 200 && data.responseText) {
-      const html = $(data.responseText)
+      const html = $(data.responseText);
       if (/This page is linked|此页面已链接到帐户/gim.test(html.find('div.inner_column').text()) || html.find('a.button.download_btn[data-upload_id]').length > 0) {
-        log('领取成功！', 'success')
+        log('领取成功！', 'success');
       } else {
-        log('领取完成，结果未知！', 'success')
+        log('领取完成，结果未知！', 'success');
       }
+    } else if (data.finalUrl.includes('/register')) {
+      log('请先登录！', 'error');
+      log(data);
     } else {
-      log('请求失败！', 'error')
-      log(data)
+      log('请求失败！', 'error');
+      log(data);
     }
   }
-  function httpRequest (option, i = 0) {
+  function httpRequest(option, i = 0) {
     return new Promise((resolve, reject) => {
-      option.onload = data => {
-        resolve(data)
-      }
-      option.onerror = option.ontimeout = option.onabort = () => {
-        reject() // eslint-disable-line
-      }
-      option.timeout = 30000
-      GM_xmlhttpRequest(option)
-    }).then(data => {
-      return data
-    }).catch(() => {
-      if (i > 1) {
-        return {}
-      } else {
-        return httpRequest(option, ++i)
-      }
-    })
+      option.onload = (data) => {
+        resolve(data);
+      };
+      option.onerror = reject;
+      option.ontimeout = reject;
+      option.onabort = reject;
+      option.timeout = 30000;
+      GM_xmlhttpRequest(option);
+    }).then((data) => data)
+      .catch(() => {
+        if (i > 1) {
+          return {};
+        }
+        return httpRequest(option, ++i);
+      });
   }
-  GM_addStyle('.swal2-title.break-all{word-wrap:break-word; word-break:break-all;}')
-})()
+  GM_addStyle('.swal2-title.break-all{word-wrap:break-word; word-break:break-all;}');
+}());
