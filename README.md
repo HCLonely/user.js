@@ -6,15 +6,7 @@
 
 ### 功能
 
-- 自动完成 Alienwarearena 网站的每日任务。
-
-### 使用方法
-
-1. 点击顶栏的任务按钮
-![任务按钮](https://cdn.jsdelivr.net/gh/HCLonely/user.js@latest/images/2020-05-29-133701.png)
-2. 脚本能够识别的任务会自动完成，不能识别的任务会弹出以下弹窗
-![弹窗](https://cdn.jsdelivr.net/gh/HCLonely/user.js@latest/images/2020-05-29-135438.png)
-3. 如果选项里没有相应的任务，可以点击自动搜索进行自动搜索外星人论坛里相关的帖子
+- 已弃用，请使用[AWA-Helper](https://github.com/HCLonely/AWA-Helper)
 
 ## AuTo Redeem Steamkey
 
@@ -54,7 +46,7 @@
 
 ### 功能
 
-进入GOG首页时如果有限免赠送游戏活动则自动领取；
+- 进入GOG首页时如果有限免赠送游戏活动则自动领取；
 
 ## Steam Redeem Sub
 
