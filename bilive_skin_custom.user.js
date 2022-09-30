@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         bilibili直播自定义皮肤背景
 // @namespace    http://tampermonkey.net/
-// @version      2.1.3
+// @version      2.1.4
 // @description  自定义bilibili直播的皮肤和背景，仅自己可见！
 // @author       HCLonely
 // @include      /^https?:\/\/live.bilibili.com\/(blanc\/)?[\d]+/
@@ -534,6 +534,9 @@
   }
   .block-effect-ctnr .item label.skin-custom {
     margin: 0 0 0 2px;
+  }
+  #skin-setting-icon {
+    fill: #c8c8c8;
   }
   `
   GM_addStyle(style)

@@ -2,7 +2,7 @@
 
 闲着没事搞的一些 Tampermonkey 脚本
 
-## Alienwarearena Daily Quest Helper
+## Alienwarearena Daily Quest Helper(不再维护)
 
 ### 功能
 
