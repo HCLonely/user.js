@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         Redeem itch.io
 // @namespace    Redeem-itch.io
-// @version      1.3.7
+// @version      1.3.8
 // @description  自动领取itch.io key链接和免费itch.io游戏
 // @author       HCLonely
 // @iconURL      https://itch.io/favicon.ico
@@ -49,17 +49,29 @@
   /** *********************领取免费itch.io游戏***************************/
   if (/^https?:\/\/.*?itch\.io\/.*?\/purchase(\?.*?)?$/.test(url) && /No thanks, just take me to the downloads|不用了，请带我去下载页面/i.test($('a.direct_download_btn').text())) {
     $('a.direct_download_btn')[0].click();
-  } else if ($('.purchase_banner_inner').length === 0 && (/0\.00/gim.test($('.button_message').eq(0)
-    .find('.dollars[itemprop]')
-    .text()) || /0\.00/gim.test($('.money_input').attr('placeholder')) || /自己出价|Name your own price/gim.test($('.button_message').eq(0)
-    .find('.buy_message')
-    .text()))) {
+  } else if (
+    $('.purchase_banner_inner').length === 0 &&
+    (
+      /0\.00/gim.test($('.button_message').eq(0)
+        .find('.dollars[itemprop]')
+        .text()) ||
+      /0\.00/gim.test($('.money_input').attr('placeholder')) ||
+      /自己出价|Name your own price/gim.test($('.button_message').eq(0)
+        .find('.buy_message')
+        .text())
+      )
+  ) {
     $('.buy_btn').after(`<a data-itch-href="${$('.buy_btn').attr('href')}" href="javascript:void(0)" onclick="redeemItchGame(this)" target="_self" class="button" one-link-mark="yes" title="仅支持免费游戏">后台领取</a>`);
   }
 
   /** **********************限时免费游戏包*****************************/
   if (/https?:\/\/itch.io\/s\/[\d]{1,}\/[\w\W]{1,}/.test(url)) {
-    $('.promotion_buy_row .buy_game_btn').after('<button id="redeem-itch-io" class="button" style="font-size:18px;letter-spacing:0.025em;line-height:36px;height:40px;padding:0 20px;margin:0 16px">后台领取</button>');
+    if ($('.promotion_buy_row .buy_game_btn').length > 0) {
+      $('.promotion_buy_row .buy_game_btn').after('<button id="redeem-itch-io" class="button" style="font-size:18px;letter-spacing:0.025em;line-height:36px;height:40px;padding:0 20px;margin:0 16px">后台领取</button>');
+    } else {
+      $('.countdown_row').prepend(`<div style="width: 100%"><button id="redeem-itch-io" class="button" style="font-size:18px;letter-spacing:0.025em;line-height:36px;padding:0 20px;margin: 10px 30%;width: 40%;">后台领取</button></div>`);
+    }
+
     $('#redeem-itch-io').click(async () => {
       const gameLink = $('.thumb_link.game_link');
       for (const e of gameLink) {
