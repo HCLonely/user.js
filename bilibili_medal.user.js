@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         bilibili勋章常亮
 // @namespace    bilibili-medal
-// @version      0.6
+// @version      0.7
 // @description  保持bilibili直播粉丝勋章常亮
 // @author       HCLonely
 // @include      https://link.bilibili.com/p/center/index
@@ -98,15 +98,24 @@
       })
     })
   }
-  function getroomsId() {
+  function getroomsId(i=1) {
     return new Promise(resolve => {
       GM_xmlhttpRequest({
-        url: `https://api.live.bilibili.com/xlive/app-ucenter/v1/fansMedal/panel?page=1&page_size=${$('.tabnav-tip.plain').text()}&target_id=${$('#right-part a[href*="space.bilibili.com"]').attr('href').match(/[\d]+/)?.[0]}`,
+        url: `https://api.live.bilibili.com/xlive/app-ucenter/v1/fansMedal/panel?page=${i}&page_size=50&target_id=${$('#right-part a[href*="space.bilibili.com"]').attr('href').match(/[\d]+/)?.[0]}`,
         method: 'get',
         responseType: 'json',
-        onload: data => {
+        headers: {
+          'origin': 'https://link.bilibili.com',
+          'referer': 'https://link.bilibili.com/p/center/index'
+        },
+        onload: async data => {
           if (data.response.code === 0) {
-            resolve([...data.response.data.list, ...data.response.data.special_list].filter(e => e.room_info?.room_id && e.medal.today_feed < 100 && !blackList.includes(e.room_info?.roomid)).map(e => [e.anchor_info?.nick_name, e.room_info?.room_id]).filter(e => e[1]))
+            if (i * 50 < data.response.data.total_number) {
+              const prevPageData = await getroomsId(i + 1);
+              resolve([...prevPageData, [...data.response.data.list, ...data.response.data.special_list].filter(e => e.room_info?.room_id && e.medal.today_feed < 100 && !blackList.includes(e.room_info?.roomid)).map(e => [e.anchor_info?.nick_name, e.room_info?.room_id]).filter(e => e[1])])
+            } else {
+              resolve([...data.response.data.list, ...data.response.data.special_list].filter(e => e.room_info?.room_id && e.medal.today_feed < 100 && !blackList.includes(e.room_info?.roomid)).map(e => [e.anchor_info?.nick_name, e.room_info?.room_id]).filter(e => e[1]))
+            }
           } else {
             resolve(false)
           }
