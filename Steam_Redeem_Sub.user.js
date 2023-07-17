@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Redeem Sub
 // @namespace    Steam Redeem Sub
-// @version      0.6
+// @version      0.7
 // @description  Steam激活Sub
 // @author       HCLonely
 // @include      /https?:\/\/store\.steampowered\.com\/account\/licenses\/(\?sub\=[\w\W]{0,})?/
@@ -95,7 +95,7 @@
         }
         function changeCountry(country){
             jQuery.ajax({
-                url:"//store.steampowered.com/account/setcountry",
+                url:"//store.steampowered.com/country/setcountry",
                 type:"post",
                 data:{
                     sessionid:g_sessionID,
