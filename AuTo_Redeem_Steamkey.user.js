@@ -3,7 +3,7 @@
 // @namespace   HCLonely
 // @author      HCLonely
 // @description 复制网页中的Steamkey后自动激活，3.0+版本为Beta版
-// @version     3.1.7
+// @version     3.1.8
 // @supportURL  https://keylol.com/t344489-1-1
 // @homepage    https://blog.hclonely.com/posts/71381355/
 // @iconURL     https://blog.hclonely.com/img/avatar.jpg
@@ -258,11 +258,11 @@
         <a tabindex="300" class="btnv6_blue_hoverfade btn_medium" style="width: 95px; height: 30px;" id="buttonSUB">
           <span>激活SUB</span>
         </a>
-        <a tabindex="300" class="btnv6_blue_hoverfade btn_medium" style="width: 125px; height: 30px;margin-left:5px" id="changeCountry">
+        <a tabindex="300" class="btnv6_blue_hoverfade btn_medium" style="width: 125px; height: 30px;margin-left:5px" id="changeCountry-account">
           <span>更改国家/地区</span>
         </a>`)
       $('#buttonSUB').click(() => { redeemSub() })
-      $('#changeCountry').click(cc)
+      $('#changeCountry-account').click(cc);
       if (/https?:\/\/store\.steampowered\.com\/account\/licenses\/\?sub=([\d]+,)+/.test(url)) {
         setTimeout(() => { redeemSub(url) }, 2000)
       }
@@ -286,6 +286,10 @@
           }
         })
       }
+    }
+    if (/https?:\/\/store\.steampowered\.com\//.test(url)) {
+      $('#account_pulldown').before('<span id="changeCountry" style="cursor:pointer;display:inline-block;padding-left:4px;line-height:25px" class="global_action_link persona_name_text_content">更改国家/地区 |</span>');
+      $('#changeCountry').click(cc);
     }
     if (GM_getValue('setting').allKeyListen) { // 激活页面内所有key
       redeemAllKey()
@@ -1177,7 +1181,7 @@
       title: '正在更换国家/地区...'
     })
     $.ajax({
-      url: '//store.steampowered.com/account/setcountry',
+      url: '//store.steampowered.com/country/setcountry',
       type: 'post',
       data: {
         sessionid: g_sessionID,

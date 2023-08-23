@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Redeem Sub
 // @namespace    Steam Redeem Sub
-// @version      0.7
+// @version      0.8
 // @description  Steam激活Sub
 // @author       HCLonely
 // @include      /https?:\/\/store\.steampowered\.com\/account\/licenses\/(\?sub\=[\w\W]{0,})?/
@@ -84,7 +84,7 @@
                         let thisC=data.match(/id\=\"usercountrycurrency\"[\w\W]*?value=\".*?\"/gim)[0].match(/value=\".*?\"/gim)[0].replace(/value=\"|\"/g,"");
                         let div=data.match(/\<div class=\"currency_change_options\"\>[\w\W]*?\<p/gim)[0].replace(/[\s]*?\<p/gim,"")+"</div>";
                         jQuery("body").append(`<div id="ccDiv" style="position:fixed;margin:auto;z-index: 1000;width:629px;height:228px;top:20px;bottom:20px;left:20px;right:20px;background-color:#232b34"><div class="newmodal_header_border"><div class="newmodal_header"><div class="newmodal_close"></div><div id="nowCountry" class="ellipsis" data-country="${thisC}" style="font-size:20px;">转换商店和钱包&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;当前国家/地区：${c}</div></div></div><div style="padding:20px">${div}</div></div>`);
-                        jQuery(".currency_change_option").click(()=>{changeCountry(jQuery(this).attr("data-country"))});
+                        jQuery(".currency_change_option").click(function(){changeCountry(jQuery(this).attr("data-country"))});
                         jQuery(".newmodal_close").click(()=>{jQuery("#ccDiv").remove()});
                     }else{
                         swal("需要挂相应地区的梯子！","","warning");
@@ -119,7 +119,7 @@
                 }
             });
         }
-        jQuery('.pageheader').parent().append('<div style="float: left;";>' +
+        jQuery('h2.pageheader').parent().append('<div style="float: left;";>' +
                                               '<textarea class="registerkey_input_box_text" rows="1"' + 'name="product_key"' +
                                               ' id="gameSub" placeholder="输入SUB,多个SUB之间用英文逗号连接"' + 'value=""' + 'color:#fff;' +
                                               ' style="margin: 3px 0px 0px; width: 400px; height: 15px;background-color:#102634; padding: 6px 18px 6px 18px; font-weight:bold; color:#fff;"></textarea>' +
