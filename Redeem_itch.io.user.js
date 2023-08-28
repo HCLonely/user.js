@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         Redeem itch.io
 // @namespace    Redeem-itch.io
-// @version      1.3.8
+// @version      1.3.9
 // @description  自动领取itch.io key链接和免费itch.io游戏
 // @author       HCLonely
 // @iconURL      https://itch.io/favicon.ico
@@ -12,6 +12,7 @@
 // @include      *://www.reddit.com/r/*
 // @include      *://new.isthereanydeal.com/deals/*
 // @include      *://freegames.codes/game/*
+// @include      *://itchclaim.tmbpeter.com/*
 // @supportURL   https://blog.hclonely.com/posts/578f9be7/
 // @homepage     https://blog.hclonely.com/posts/578f9be7/
 // @require      https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.slim.min.js
@@ -81,7 +82,7 @@
   }
 
   /** **********************后台领取游戏*****************************/
-  if (['keylol.com', 'www.steamgifts.com', 'www.reddit.com', 'new.isthereanydeal.com', 'freegames.codes'].includes(window.location.hostname)) {
+  if (['keylol.com', 'www.steamgifts.com', 'www.reddit.com', 'new.isthereanydeal.com', 'freegames.codes', 'itchclaim.tmbpeter.com'].includes(window.location.hostname)) {
     addRedeemBtn();
     const observer = new MutationObserver(addRedeemBtn);
     observer.observe(document.documentElement, {
