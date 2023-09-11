@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         Redeem itch.io
 // @namespace    Redeem-itch.io
-// @version      1.3.9
+// @version      1.3.10
 // @description  自动领取itch.io key链接和免费itch.io游戏
 // @author       HCLonely
 // @iconURL      https://itch.io/favicon.ico
@@ -13,6 +13,7 @@
 // @include      *://new.isthereanydeal.com/deals/*
 // @include      *://freegames.codes/game/*
 // @include      *://itchclaim.tmbpeter.com/*
+// @include      *://shaigrorb.github.io/freetchio/*
 // @supportURL   https://blog.hclonely.com/posts/578f9be7/
 // @homepage     https://blog.hclonely.com/posts/578f9be7/
 // @require      https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.slim.min.js
@@ -82,7 +83,7 @@
   }
 
   /** **********************后台领取游戏*****************************/
-  if (['keylol.com', 'www.steamgifts.com', 'www.reddit.com', 'new.isthereanydeal.com', 'freegames.codes', 'itchclaim.tmbpeter.com'].includes(window.location.hostname)) {
+  if (['keylol.com', 'www.steamgifts.com', 'www.reddit.com', 'new.isthereanydeal.com', 'freegames.codes', 'itchclaim.tmbpeter.com', 'shaigrorb.github.io'].includes(window.location.hostname)) {
     addRedeemBtn();
     const observer = new MutationObserver(addRedeemBtn);
     observer.observe(document.documentElement, {
@@ -94,8 +95,15 @@
   }
   function addRedeemBtn() {
     for (const e of $('a[href*="itch.io"]:not(".redeem-itch-game")')) {
-      $(e).addClass('redeem-itch-game')
-        .after(`<a ${window.location.hostname === 'freegames.codes' ? 'class="details__buy" ' : ''}data-itch-href="${$(e).attr('href')}" href="javascript:void(0)" onclick="redeemItchGame(this)" target="_self" style="margin-${window.location.hostname === 'freegames.codes' ? 'top' : 'left'}:10px !important;">领取</a>`);
+      const positionEle = window.location.hostname === 'shaigrorb.github.io' ? $(e).addClass('redeem-itch-game').parents('.item-card') : $(e).addClass('redeem-itch-game');
+      positionEle.after(`<a ${
+          window.location.hostname === 'freegames.codes' ? 'class="details__buy" ' : ''
+        }
+        data-itch-href="${$(e).attr('href')}"
+        href="javascript:void(0);"
+        onclick="redeemItchGame('${$(e).attr('href')}')"
+        target="_self"
+        style="${window.location.hostname === 'shaigrorb.github.io' ? 'position:relative;height:min-content;right:39px;background-color:#16a34a;top:4px;text-decoration-line:none;color:white;font-weight:bold;border-radius:2px;padding:5px;font-size:13px; ' : `margin-${window.location.hostname === 'freegames.codes' ? 'top' : 'left'}:10px !important;`}">领取</a>`);
     }
   }
   GM_registerMenuCommand('提取所有链接', async () => {
@@ -182,7 +190,9 @@
   }
   async function redeemGame(e) {
     let url = '';
-    if ($(e).attr('data-itch-href')) {
+    if (typeof e === 'string') {
+      url = e;
+    } else if ($(e).attr('data-itch-href')) {
       url = $(e).attr('data-itch-href');
     } else {
       if ($(e).hasClass('itch-io-game-link-owned')) return;
