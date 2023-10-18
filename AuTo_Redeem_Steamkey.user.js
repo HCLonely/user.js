@@ -3,7 +3,7 @@
 // @namespace   HCLonely
 // @author      HCLonely
 // @description 复制网页中的Steamkey后自动激活，3.0+版本为Beta版
-// @version     3.1.8
+// @version     3.1.9
 // @supportURL  https://keylol.com/t344489-1-1
 // @homepage    https://blog.hclonely.com/posts/71381355/
 // @iconURL     https://blog.hclonely.com/img/avatar.jpg
@@ -350,6 +350,9 @@
         }
       },
       ontimeout: () => {
+        tableUpdateKey(key, myTexts.fail, myTexts.network, 0, myTexts.nothing)
+      },
+      onerror: () => {
         tableUpdateKey(key, myTexts.fail, myTexts.network, 0, myTexts.nothing)
       },
       onabort: () => {
@@ -763,6 +766,17 @@
             }
           })
         },
+        onerror: function () {
+          swal({
+            closeOnClickOutside: false,
+            title: 'ASF连接失败：error',
+            icon: 'error',
+            text: '连接地址 "' + setting.asfProtocol + '://' + setting.asfHost + ':' + setting.asfPort + '/Api/Command/"',
+            buttons: {
+              confirm: '确定'
+            }
+          })
+        },
         ontimeout: function () {
           swal({
             closeOnClickOutside: false,
@@ -985,6 +999,19 @@
           className: 'swal-user',
           title: '执行ASF指令(' + command + ')失败！请检查网络！',
           text: 'aborted',
+          icon: 'error',
+          buttons: {
+            confirm: '关闭'
+          }
+        })
+      },
+      onerror: function (error) {
+        console.log(error);
+        swal({
+          closeOnClickOutside: false,
+          className: 'swal-user',
+          title: '执行ASF指令(' + command + ')失败！请检查控制台日志！',
+          text: 'error',
           icon: 'error',
           buttons: {
             confirm: '关闭'
