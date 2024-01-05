@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         置顶-置底
 // @namespace    top-bottom
-// @version      0.1
+// @version      0.2
 // @description  拉姆置顶，蕾姆置底
 // @author       HCLonely
 // @include      *://*/*
@@ -14,9 +14,14 @@
 // @resource lamuB       https://cdn.jsdelivr.net/gh/HCLonely/blog.hclonely.com@1.2.3/img/TopLamuLeimu/lamuB.png
 // @grant        GM_getResourceURL
 // @grant        GM_addStyle
+// @grant        GM_setValue
+// @grant        GM_getValue
+// @grant        GM_registerMenuCommand
+// @grant        GM_unregisterMenuCommand
 // ==/UserScript==
 
 $(function () {
+  const options = GM_getValue('options') || {};
   $('body').append(`
 <div id="updown">
   <div class="sidebar_wo" id="leimu">
@@ -76,6 +81,54 @@ $(function () {
     $("#updown > #leimu img").eq(0).attr('src', GM_getResourceURL('leimuA'));
     return false;
   });
+  if (options.keyCheck) {
+    $('#updown').hide();
+    document.addEventListener('keydown', function (e) {
+      const event = e || window.event;
+      if (event.keyCode === 17) {
+        $('#updown').show();
+        return;
+      }
+    });
+    document.addEventListener('keyup', function (e) {
+      const event = e || window.event;
+      if (event.keyCode === 17) {
+        $('#updown').hide();
+        return;
+      }
+    });
+  }
+  let alwaysShow, keyCheck;
+  function alwaysShowCallback() {
+    options.keyCheck = true;
+    GM_unregisterMenuCommand(alwaysShow);
+    GM_setValue('options', options);
+    $('#updown').hide();
+
+    keyCheck = GM_registerMenuCommand("按 Ctrl 键显示图标", keyCheckCallback, {
+      autoClose: false
+    });
+  }
+  function keyCheckCallback() {
+    options.keyCheck = false;
+    GM_unregisterMenuCommand(keyCheck);
+    GM_setValue('options', options);
+    $('#updown').show();
+
+    alwaysShow = GM_registerMenuCommand("总是显示图标", alwaysShowCallback, {
+      autoClose: false
+    });
+  }
+  if (options.keyCheck) {
+    keyCheck = GM_registerMenuCommand("按 Ctrl 键显示图标", keyCheckCallback, {
+      autoClose: false
+    });
+  } else {
+    alwaysShow = GM_registerMenuCommand("总是显示图标", alwaysShowCallback, {
+      autoClose: false
+    });
+  }
+
   GM_addStyle(`
 .sidebar_wo {
   position: fixed;
