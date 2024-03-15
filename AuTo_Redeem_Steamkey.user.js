@@ -3,7 +3,7 @@
 // @namespace   HCLonely
 // @author      HCLonely
 // @description 复制网页中的Steamkey后自动激活，3.0+版本为Beta版
-// @version     3.1.9
+// @version     3.2.0
 // @supportURL  https://keylol.com/t344489-1-1
 // @homepage    https://blog.hclonely.com/posts/71381355/
 // @iconURL     https://blog.hclonely.com/img/avatar.jpg
@@ -1181,23 +1181,45 @@
       url: '//store.steampowered.com/cart/',
       type: 'get',
       success: function (data) {
-        if (data.match(/id="usercountrycurrency_trigger"[\w\W]*?>[w\W]*?<\/a/gim)) {
-          const c = data.match(/id="usercountrycurrency_trigger".*?>(.*?)<\/a/i)?.[1]
+        const cartConfigRaw = data.match(/data-cart_config="(.*?)"/)?.[1];
+        const temp = document.createElement("div");
+        temp.innerHTML = cartConfigRaw;
+        const cartConfigStr = temp.textContent || temp.innerText;
+        let cartConfig;
+        try {
+          cartConfig = JSON.parse(cartConfigStr);
+        }catch(e) {
+          console.error(e);
+          swal('获取当前国家/地区失败！', '', 'error');
+        }
+
+        const userInfoRaw = data.match(/data-userinfo="(.*?)"/)?.[1];
+        const temp1 = document.createElement("div");
+        temp1.innerHTML = userInfoRaw;
+        const userInfoStr = temp1.textContent || temp1.innerText;
+        let userInfo;
+        try {
+          userInfo = JSON.parse(userInfoStr);
+        } catch (e) {
+          console.error(e);
+          swal('获取当前国家/地区失败！', '', 'error');
+        }
+        if (Object.keys(cartConfig.rgUserCountryOptions).length > 2) {
           const div = data.match(/<div class="currency_change_options">([\w\W]*?)<p/i)?.[1].trim() + '</div>'
           swal({
             closeOnClickOutside: false,
-            title: `当前国家/地区：${c}`,
+            title: `当前国家/地区：${cartConfig.rgUserCountryOptions[userInfo.country_code] || userInfo.country_code}`,
             content: $(`<div>${div}</div>`)[0]
           })
           $('.currency_change_option').click(function () {
-            changeCountry($(this).attr('data-country'))
+            changeCountry($(this).attr('data-country'));
           })
         } else {
-          swal('需要挂相应地区的梯子！', '', 'warning')
+          swal('需要挂相应地区的梯子！', '', 'warning');
         }
       },
       error: () => {
-        swal('获取当前国家/地区失败！', '', 'error')
+        swal('获取当前国家/地区失败！', '', 'error');
       }
     })
   }
@@ -1219,15 +1241,36 @@
           url: '//store.steampowered.com/cart/',
           type: 'get',
           success: function (data) {
-            const c = data.match(/id="usercountrycurrency_trigger".*?>(.*?)<\/a/i)?.[1]
-            const thisC = data.match(/id="usercountrycurrency".*?value="(.*?)"/i)?.[1]
+            const cartConfigRaw = data.match(/data-cart_config="(.*?)"/)?.[1];
+            const temp = document.createElement("div");
+            temp.innerHTML = cartConfigRaw;
+            const cartConfigStr = temp.textContent || temp.innerText;
+            let cartConfig;
+            try {
+              cartConfig = JSON.parse(cartConfigStr);
+            } catch (e) {
+              console.error(e);
+              swal('获取当前国家/地区失败！', '', 'error');
+            }
+
+            const userInfoRaw = data.match(/data-userinfo="(.*?)"/)?.[1];
+            const temp1 = document.createElement("div");
+            temp1.innerHTML = userInfoRaw;
+            const userInfoStr = temp1.textContent || temp1.innerText;
+            let userInfo;
+            try {
+              userInfo = JSON.parse(userInfoStr);
+            } catch (e) {
+              console.error(e);
+              swal('获取当前国家/地区失败！', '', 'error');
+            }
             const div = data.match(/<div class="currency_change_options">([\w\W]*?)<p/i)?.[1].trim() + '</div>'
 
-            if (thisC === country) {
+            if (userInfo.country_code === country) {
               swal('更换成功！', '', 'success').then(() => {
                 swal({
                   closeOnClickOutside: false,
-                  title: `当前国家/地区：${c}`,
+                  title: `当前国家/地区：${cartConfig.rgUserCountryOptions[userInfo.country_code] || userInfo.country_code}`,
                   content: $(`<div>${div}</div>`)[0]
                 })
                 $('.currency_change_option').click(function () {
