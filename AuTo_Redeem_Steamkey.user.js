@@ -3,7 +3,7 @@
 // @namespace   HCLonely
 // @author      HCLonely
 // @description 复制网页中的Steamkey后自动激活，3.0+版本为Beta版
-// @version     3.2.0
+// @version     3.2.1
 // @supportURL  https://keylol.com/t344489-1-1
 // @homepage    https://blog.hclonely.com/posts/71381355/
 // @iconURL     https://blog.hclonely.com/img/avatar.jpg
@@ -27,7 +27,7 @@
 
 /* global g_sessionID, swal, arsStatic */
 
-(function () {
+(async function () {
   'use strict'
 
   const url = window.location.href
@@ -143,8 +143,9 @@
 
     // 复制激活功能
     if (!/https?:\/\/store\.steampowered\.com\/account\/registerkey[\w\W]{0,}/.test(url) && GM_getValue('setting').copyListen) { // 非激活页面
-      const activateProduct = function (e) {
+      const activateProduct = async function (e) {
         const productKey = window.getSelection().toString().trim() || e.target.value
+        await navigator.clipboard.writeText(productKey).then(() => true, () => false);
         if (/^([\w\W]*)?([\d\w]{5}(-[\d\w]{5}){2}(\r||,||，)?){1,}/.test(productKey)) {
           if (!$('div.swal-overlay').hasClass('swal-overlay--show-modal')) {
             swal({
@@ -1032,6 +1033,136 @@
       }
     })
   }
+
+  async function refreshToken() {
+    try {
+      const host = 'store.steampowered.com';
+      const formData = new FormData();
+      formData.append('redir', `https://${host}/`);
+      const { result, statusText, status, data } = await httpRequest({
+        url: 'https://login.steampowered.com/jwt/ajaxrefresh',
+        method: 'POST',
+        responseType: 'json',
+        headers: {
+          Host: 'login.steampowered.com',
+          Origin: `https://${host}`,
+          Referer: `https://${host}/`
+        },
+        data: formData
+      });
+      if (result === 'Success') {
+        if (data?.response?.success) {
+          if (await setStoreToken(data.response)) {
+            // logStatus.success();
+            return true;
+          }
+          // logStatus.error('Error');
+          return false;
+        }
+        // logStatus.error(`Error:${data?.statusText}(${data?.status})`);
+        return false;
+      }
+      // logStatus.error(`${result}:${statusText}(${status})`);
+      return false;
+    } catch (error) {
+      console.error(error);
+      // throwError(error, 'Steam.refreshToken');
+      return false;
+    }
+  }
+  async function setStoreToken(param) {
+    try {
+      const host = 'store.steampowered.com';
+      const formData = new FormData();
+      formData.append('steamID', param.steamID);
+      formData.append('nonce', param.nonce);
+      formData.append('redir', param.redir);
+      formData.append('auth', param.auth);
+      const { result, statusText, status, data } = await httpRequest({
+        url: `https://${host}/login/settoken`,
+        method: 'POST',
+        headers: {
+          Accept: 'application/json, text/plain, */*',
+          Host: host,
+          Origin: `https://${host}`
+          // Referer: `https://${host}/login`
+        },
+        data: formData
+      });
+      if (result === 'Success') {
+        if (data?.status === 200) {
+          // logStatus.success();
+          return true;
+        }
+        // logStatus.error(`Error:${data?.statusText}(${data?.status})`);
+        return false;
+      }
+      // logStatus.error(`${result}:${statusText}(${status})`);
+      return false;
+    } catch (error) {
+      console.error(error);
+      // throwError(error, 'Steam.setStoreToken');
+      return false;
+    }
+  }
+  async function updateStoreAuth(retry = false) {
+    try {
+      // const logStatus = echoLog({ text: __('updatingAuth', __('steamStore')) });
+      const { result, statusText, status, data } = await httpRequest({
+        url: 'https://store.steampowered.com/',
+        method: 'GET',
+        headers: {
+          Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+          'Cache-Control': 'max-age=0',
+          'Sec-Fetch-Dest': 'document',
+          'Sec-Fetch-Mode': 'navigate',
+          'Upgrade-Insecure-Requests': '1'
+        },
+        fetch: false,
+        redirect: 'manual'
+      });
+      if (data?.status === 200) {
+        if (!data.responseText.includes('data-miniprofile=')) {
+          if (await refreshToken()) {
+            // logStatus.warning(__('retry'));
+            if (retry) {
+              // logStatus.error(`Error:${__('needLoginSteamStore')}`, true);
+              return false;
+            }
+            return updateStoreAuth(true);
+          }
+          // logStatus.error(`Error:${__('needLoginSteamStore')}`, true);
+          return false;
+        }
+        const storeSessionID = data.responseText.match(/g_sessionID = "(.+?)";/)?.[1];
+        if (storeSessionID) {
+          sessionID = storeSessionID; // todo
+          // logStatus.success();
+          return true;
+        }
+        // logStatus.error('Error: Get "sessionID" failed');
+        return false;
+      }
+      if ([301, 302].includes(data?.status)) {
+        if (await refreshToken()) {
+          // logStatus.warning(__('retry'));
+          if (retry) {
+            // logStatus.error(`Error:${__('needLoginSteamStore')}`, true);
+            return false;
+          }
+          return updateStoreAuth(true);
+        }
+        // logStatus.error(`Error:${__('needLoginSteamStore')}`, true);
+        return false;
+      }
+      // logStatus.error(`${result}:${statusText}(${status})`);
+      return false;
+    } catch (error) {
+      console.log(error);
+      // throwError(error as Error, 'Steam.updateStoreAuth');
+      return false;
+    }
+  }
   function webRedeem(key) {
     const div = $('<div id="registerkey_examples_text"><div class="notice_box_content" id="unusedKeyArea"> <b>未使用的Key：</b><br><div><ol id="unusedKeys" align="left"></ol></div></div><div class="table-responsive table-condensed"><table class="table table-hover hclonely"><caption><h2>激活记录</h2></caption><thead><th>No.</th><th>Key</th><th>结果</th><th>详情</th><th>Sub</th></thead><tbody></tbody></table></div><br></div>')[0]
     swal({
@@ -1068,8 +1199,8 @@
       GM_xmlhttpRequest({
         method: 'GET',
         url: 'https://store.steampowered.com/account/registerkey',
-        onload: function (data) {
-          if (data.finalUrl.includes('login')) {
+        onload: async function (data) {
+          if (data.finalUrl.includes('login') && !await updateStoreAuth()) {
             swal({
               closeOnClickOutside: false,
               icon: 'warning',
@@ -1188,7 +1319,7 @@
         let cartConfig;
         try {
           cartConfig = JSON.parse(cartConfigStr);
-        }catch(e) {
+        } catch (e) {
           console.error(e);
           swal('获取当前国家/地区失败！', '', 'error');
         }
@@ -1333,8 +1464,8 @@
         keyList = hasKey.join(',')
         if ($(btn).attr('key') !== keyList) {
           $(btn).attr('key', keyList)
-          .text('激活本页面所有key(共' + hasKey.length + '个)')
-          .show()
+            .text('激活本页面所有key(共' + hasKey.length + '个)')
+            .show()
         }
       } else if (document.getElementById('allKey')?.style?.display === 'block') {
         $(btn).hide().text('激活本页面所有key(共0个)')
@@ -1344,4 +1475,84 @@
   function arr(arr) {
     return [...new Set(arr)]
   }
+  async function httpRequest(options, times = 0) {
+    if (window.TRACE) {
+      console.trace('%cAuto-Task[Debug]:', 'color:blue');
+    }
+    try {
+      const result = await new Promise(resolve => {
+        if (options.dataType) {
+          options.responseType = options.dataType;
+        }
+        const requestObj = {
+          ...{
+            timeout: 3e4,
+            ontimeout(data) {
+              resolve({
+                result: 'Error',
+                statusText: 'Timeout',
+                status: 601,
+                data: data,
+                options: options
+              });
+            },
+            onabort(data) {
+              resolve({
+                result: 'Error',
+                statusText: 'Aborted',
+                status: 602,
+                data: data,
+                options: options
+              });
+            },
+            onerror(data) {
+              resolve({
+                result: 'Error',
+                statusText: 'Error',
+                status: 603,
+                data: data,
+                options: options
+              });
+            },
+            onload(data) {
+              if (options.responseType === 'json' && data?.response && typeof data.response !== 'object') {
+                try {
+                  data.response = JSON.parse(data.responseText);
+                } catch (error) { }
+              }
+              resolve({
+                result: 'Success',
+                statusText: 'Load',
+                status: 600,
+                data: data,
+                options: options
+              });
+            }
+          },
+          ...options
+        };
+        GM_xmlhttpRequest(requestObj);
+      });
+      if (window.DEBUG) {
+        console.log('%cAuto-Task[httpRequest]:', 'color:blue', JSON.stringify(result));
+      }
+      if (result.status !== 600 && times < 2) {
+        return await httpRequest(options, times + 1);
+      }
+      return result;
+    } catch (error) {
+      console.log('%cAuto-Task[httpRequest]:', 'color:red', JSON.stringify({
+        errorMsg: error,
+        options: options
+      }));
+      throwError(error, 'httpRequest');
+      return {
+        result: 'JsError',
+        statusText: 'Error',
+        status: 604,
+        error: error,
+        options: options
+      };
+    }
+  };
 }())
