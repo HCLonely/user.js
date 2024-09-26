@@ -3,7 +3,7 @@
 // @namespace   HCLonely
 // @author      HCLonely
 // @description 复制网页中的Steamkey后自动激活，3.0+版本为Beta版
-// @version     3.2.1
+// @version     3.2.2
 // @supportURL  https://keylol.com/t344489-1-1
 // @homepage    https://blog.hclonely.com/posts/71381355/
 // @iconURL     https://blog.hclonely.com/img/avatar.jpg
@@ -581,6 +581,7 @@
           pause: '暂停挂卡',
           resume: '恢复挂卡',
           '2fa': '获取令牌',
+          '2faok': '2faok',
           more: '更多ASF指令',
           confirm: '确定',
           cancel: '取消'
@@ -593,6 +594,7 @@
           case 'pause':
           case 'resume':
           case '2fa':
+          case '2faok':
             asfRedeem('!' + value)
             break
           case 'test':
