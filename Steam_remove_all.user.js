@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         steam一键移除
-// @version      0.7.8
+// @version      0.7.9
 // @description  steam一键取关鉴赏家，取关游戏，清空愿望单。
 // @namespace    https://greasyfork.org/users/133492
 // @author       HCLonely
@@ -41,6 +41,7 @@
 <a id="get_wl" href="javascript:void(0)" class="big_button">
 获取愿望单列表					</a>
     </div>
+    </br>
     <div class="btn_wrapper">
 <a id="unf_c" href="javascript:void(0)" class="big_button next disabled">
 取关鉴赏家					</a>
@@ -140,21 +141,28 @@
 
     let [curators,unfC,unfG,remG,page,steam64ID,userName]=[[],0,0,0,1,'',''];
     userName=$('a[data-miniprofile='+g_AccountID+']').text().trim();
-    let xhr = new XMLHttpRequest();
-    xhr.open("GET", "https://store.steampowered.com/wishlist/id/"+userName);
-    xhr.setRequestHeader('Content-Type','application/x-www-form-urlencoded; charset=UTF-8');
-    xhr.onreadystatechange = function(){
-        let XMLHttpReq = xhr;
-        if (XMLHttpReq.readyState == 4) {
-            if (XMLHttpReq.status == 200) {
-                let data = XMLHttpReq.responseText;
-                steam64ID = data.match(/var.*?g_strWishlistBaseURL.*?[\d]+?\\/gm)[0].match(/[\d]+/)[0];
-            }else{
-                swal('获取steam64位ID失败！','移除愿望单功能将不可用，其他功能可正常使用！','error');
-            }
-        }
-    };
-    xhr.send();
+
+    try {
+        steam64ID = JSON.parse($('#application_config').attr('data-userinfo')).steamid;
+    } catch (e) {
+        console.error(e);
+        swal('获取steam64位ID失败！', '移除愿望单功能将不可用，其他功能可正常使用！', 'error');
+    }
+    // let xhr = new XMLHttpRequest();
+    // xhr.open("GET", "https://store.steampowered.com/wishlist/id/"+userName);
+    // xhr.setRequestHeader('Content-Type','application/x-www-form-urlencoded; charset=UTF-8');
+    // xhr.onreadystatechange = function(){
+    //     let XMLHttpReq = xhr;
+    //     if (XMLHttpReq.readyState == 4) {
+    //         if (XMLHttpReq.status == 200) {
+    //             let data = XMLHttpReq.responseText;
+    //             steam64ID = data.match(/var.*?g_strWishlistBaseURL.*?[\d]+?\\/gm)[0].match(/[\d]+/)[0];
+    //         }else{
+    //             swal('获取steam64位ID失败！','移除愿望单功能将不可用，其他功能可正常使用！','error');
+    //         }
+    //     }
+    // };
+    // xhr.send();
 
     //获取鉴赏家列表
     function get_curators(){
