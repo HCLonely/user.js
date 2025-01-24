@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         bilibili直播自定义皮肤背景
 // @namespace    http://tampermonkey.net/
-// @version      2.1.4
+// @version      2.1.5
 // @description  自定义bilibili直播的皮肤和背景，仅自己可见！
 // @author       HCLonely
 // @include      /^https?:\/\/live.bilibili.com\/(blanc\/)?[\d]+/
@@ -375,8 +375,8 @@
     }
 
     .live-skin-coloration-area .live-skin-button-text:not(:disabled) {
-      color: rgba(255,255,255,1);
-      fill: rgba(255,255,255,1);
+      color: rgb(201, 204, 208) !important;
+      fill: rgb(201, 204, 208) !important;
     }
 
     #head-info-vm {
@@ -457,7 +457,7 @@
   .link-input.skin-custom {
     padding: 2px 8px;
     line-height: 25px;
-    border: 1px solid #aaa;
+    border: 1px solid rgb(201, 204, 208);
     border-radius: 4px;
     background-color: #fff;
     outline: 0;
@@ -536,7 +536,12 @@
     margin: 0 0 0 2px;
   }
   #skin-setting-icon {
-    fill: #c8c8c8;
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    margin-left: 4px;
+    margin-top: 4px;
+    fill: rgb(201, 204, 208) !important;
   }
   `
   GM_addStyle(style)
