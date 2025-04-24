@@ -9,7 +9,7 @@
     "blbl": "standard bilive_skin_custom.user.js --fix",
     "babel:gist": "babel require/gistSync.js -o require/gistSync.user.js",
     "babel": "babel *.user.js --out-dir compatibility",
-    "ars": "webpack --config ./Auto_Redeem_Steamkey/webpack.config.js"
+    "ars": "cd Auto_Redeem_Steamkey && npm run esbuild"
   },
   "repository": {
     "type": "git",
@@ -30,6 +30,7 @@
     "@typescript-eslint/eslint-plugin": "^5.11.0",
     "@typescript-eslint/parser": "^5.11.0",
     "babel-loader": "^8.2.3",
+    "esbuild": "^0.25.3",
     "eslint": "^8.7.0",
     "sweetalert2": "^11.4.0",
     "terser-webpack-plugin": "^5.3.1",
@@ -39,5 +40,8 @@
     "webpack": "^5.68.0",
     "webpack-cli": "^4.9.2",
     "webpackbar": "^5.0.2"
+  },
+  "dependencies": {
+    "sweetalert": "^2.1.2"
   }
 }

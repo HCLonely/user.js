@@ -1,9 +1,9 @@
 // ==UserScript==
-// @name        AuTo Redeem Steamkey Test
+// @name        AuTo Redeem Steamkey
 // @namespace   HCLonely
 // @author      HCLonely
 // @description 复制网页中的Steamkey后自动激活，3.0+版本为Beta版
-// @version     3.1.7
+// @version     3.3.0
 // @supportURL  https://keylol.com/t344489-1-1
 // @homepage    https://blog.hclonely.com/posts/71381355/
 // @iconURL     https://blog.hclonely.com/img/avatar.jpg
@@ -17,12 +17,10 @@
 // @grant       GM_setValue
 // @grant       GM_getValue
 // @grant       GM_xmlhttpRequest
-// @grant       GM_getResourceText
-// @grant       unsafeWindow
 // @run-at      document-idle
-// @require     https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js
-// @require     https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js
-// @resource    style https://cdn.jsdelivr.net/npm/sweetalert2@11.3.5/dist/sweetalert2.min.css
+// @require     https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js
+// @require     https://cdn.jsdelivr.net/gh/HCLonely/user.js@latest/ARS/Auto_Redeem_Steamksy_static.min.js
+// @require     https://cdn.jsdelivr.net/npm/sweetalert@2.1.2/dist/sweetalert.min.js
 // @connect     *
 // @compatible  chrome 没有测试其他浏览器的兼容性
 // ==/UserScript==

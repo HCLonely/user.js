@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ES2020", // 指定 ECMAScript 目标版本
+    "module": "CommonJS", // 使用 CommonJS 模块系统
+    "strict": true, // 启用所有严格类型检查选项
+    "esModuleInterop": true, // 启用对 ES 模块默认导入的兼容性
+    "forceConsistentCasingInFileNames": true, // 文件名大小写一致性检查
+    "skipLibCheck": true, // 跳过库文件的类型检查
+    "outDir": "./", // 输出目录
+    "rootDir": "./", // 输入文件的根目录
+    "resolveJsonModule": true, // 允许导入 JSON 文件
+    "typeRoots": [
+      "../node_modules/@types",
+      "./global.d.ts"
+    ], // 类型声明文件路径
+    "moduleResolution": "node", // 模块解析策略
+    "allowSyntheticDefaultImports": true, // 允许默认导入非 ES 模块
+    "noImplicitAny": true, // 禁止隐式的 `any` 类型
+    "strictNullChecks": true, // 严格的空值检查
+    "strictFunctionTypes": true, // 严格检查函数类型
+    "strictBindCallApply": true, // 严格检查 `bind`、`call` 和 `apply`
+    "noImplicitThis": true, // 禁止隐式的 `this` 类型
+    "alwaysStrict": true // 在每个文件中启用严格模式
+  },
+  "exclude": [],
+  "include": [
+    "*.ts"
+  ]
+}
