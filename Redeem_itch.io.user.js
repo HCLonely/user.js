@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         Redeem itch.io
 // @namespace    Redeem-itch.io
-// @version      1.3.10
+// @version      1.3.11
 // @description  自动领取itch.io key链接和免费itch.io游戏
 // @author       HCLonely
 // @iconURL      https://itch.io/favicon.ico
@@ -61,7 +61,7 @@
       /自己出价|Name your own price/gim.test($('.button_message').eq(0)
         .find('.buy_message')
         .text())
-      )
+    )
   ) {
     $('.buy_btn').after(`<a data-itch-href="${$('.buy_btn').attr('href')}" href="javascript:void(0)" onclick="redeemItchGame(this)" target="_self" class="button" one-link-mark="yes" title="仅支持免费游戏">后台领取</a>`);
   }
@@ -71,7 +71,7 @@
     if ($('.promotion_buy_row .buy_game_btn').length > 0) {
       $('.promotion_buy_row .buy_game_btn').after('<button id="redeem-itch-io" class="button" style="font-size:18px;letter-spacing:0.025em;line-height:36px;height:40px;padding:0 20px;margin:0 16px">后台领取</button>');
     } else {
-      $('.countdown_row').prepend(`<div style="width: 100%"><button id="redeem-itch-io" class="button" style="font-size:18px;letter-spacing:0.025em;line-height:36px;padding:0 20px;margin: 10px 30%;width: 40%;">后台领取</button></div>`);
+      $('.countdown_row').prepend('<div style="width: 100%"><button id="redeem-itch-io" class="button" style="font-size:18px;letter-spacing:0.025em;line-height:36px;padding:0 20px;margin: 10px 30%;width: 40%;">后台领取</button></div>');
     }
 
     $('#redeem-itch-io').click(async () => {
@@ -95,10 +95,11 @@
   }
   function addRedeemBtn() {
     for (const e of $('a[href*="itch.io"]:not(".redeem-itch-game")')) {
-      const positionEle = window.location.hostname === 'shaigrorb.github.io' ? $(e).addClass('redeem-itch-game').parents('.item-card') : $(e).addClass('redeem-itch-game');
+      const positionEle = window.location.hostname === 'shaigrorb.github.io' ? $(e).addClass('redeem-itch-game')
+        .parents('.item-card') : $(e).addClass('redeem-itch-game');
       positionEle.after(`<a ${
-          window.location.hostname === 'freegames.codes' ? 'class="details__buy" ' : ''
-        }
+        window.location.hostname === 'freegames.codes' ? 'class="details__buy" ' : ''
+      }
         data-itch-href="${$(e).attr('href')}"
         href="javascript:void(0);"
         onclick="redeemItchGame('${$(e).attr('href')}')"
@@ -241,23 +242,28 @@
     }
   }
   async function purchase(url) {
-    log(`正在加载购买页面...<br/>${url}`);
-    const data = await httpRequest({
-      url: `${url}/purchase`,
-      method: 'get'
-    });
-    if (data.status === 200) {
-      const html = $(data.responseText);
-      if (/0\.00/gim.test(html.find('.button_message:first .dollars[itemprop]').text()) || /0\.00/gim.test(html.find('.money_input').attr('placeholder')) || /自己出价|Name your own price/gim.test(html.find('.button_message:first .buy_message').text())) {
-        const csrf_token = html.find('[name="csrf_token"]').val();
-        const reward_id = html.find('[name="reward_id"]').val();
-        await download(url, csrf_token, reward_id);
+    try {
+      log(`正在加载购买页面...<br/>${url}`);
+      const data = await httpRequest({
+        url: `${url}/purchase`,
+        method: 'get'
+      });
+      if (data.status === 200) {
+        const html = $(data.responseText);
+        if (/0\.00/gim.test(html.find('.button_message:first .dollars[itemprop]').text()) || /0\.00/gim.test(html.find('.money_input').attr('placeholder')) || /自己出价|Name your own price/gim.test(html.find('.button_message:first .buy_message').text())) {
+          const csrf_token = html.find('[name="csrf_token"]').val();
+          const reward_id = html.find('[name="reward_id"]').val();
+          await download(url, csrf_token, reward_id);
+        } else {
+          log('价格不为 0, 可能活动已结束！', 'error');
+        }
       } else {
-        log('价格不为 0, 可能活动已结束！', 'error');
+        log('请求失败！', 'error');
+        log(data);
       }
-    } else {
+    } catch (error) {
       log('请求失败！', 'error');
-      log(data);
+      log(error);
     }
   }
   async function download(url, csrf_token, reward_id) {
