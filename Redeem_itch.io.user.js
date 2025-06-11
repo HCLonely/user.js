@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         Redeem itch.io
 // @namespace    Redeem-itch.io
-// @version      1.3.11
+// @version      1.3.12
 // @description  自动领取itch.io key链接和免费itch.io游戏
 // @author       HCLonely
 // @iconURL      https://itch.io/favicon.ico
@@ -221,6 +221,8 @@
       }
     } else if (/^https?:\/\/.+?\.itch\.io\/[^/]+?(\/purchase)?$/.test(url)) {
       await isOwn(url.replace('/purchase', ''));
+    } else if (/^https?:\/\/.+?\.itch\.io\/[^/]+?(\/purchase)\?reward_id=/.test(url)) {
+      await isOwn(url);
     }
   }
   async function isOwn(url) {
@@ -244,8 +246,9 @@
   async function purchase(url) {
     try {
       log(`正在加载购买页面...<br/>${url}`);
+      const purchaseUrl = url.includes('/purchase') ? url : `${url}/purchase`;
       const data = await httpRequest({
-        url: `${url}/purchase`,
+        url: purchaseUrl,
         method: 'get'
       });
       if (data.status === 200) {
@@ -253,7 +256,7 @@
         if (/0\.00/gim.test(html.find('.button_message:first .dollars[itemprop]').text()) || /0\.00/gim.test(html.find('.money_input').attr('placeholder')) || /自己出价|Name your own price/gim.test(html.find('.button_message:first .buy_message').text())) {
           const csrf_token = html.find('[name="csrf_token"]').val();
           const reward_id = html.find('[name="reward_id"]').val();
-          await download(url, csrf_token, reward_id);
+          await download(purchaseUrl.replace(/\/purchase.*/, ''), csrf_token, reward_id);
         } else {
           log('价格不为 0, 可能活动已结束！', 'error');
         }
@@ -323,6 +326,8 @@
         const url = form.attr('action');
         const csrf_token = form.find('input[name="csrf_token"]').val();
         await claimame(url, csrf_token, url.href);
+      } else if (data.finalUrl.includes('/register')) {
+        log('领取失败，请先登录！', 'error');
       } else {
         log('领取完成，结果未知！', 'success');
       }
