@@ -1,13 +1,12 @@
 // ==UserScript==
 // @name         置顶-置底
 // @namespace    top-bottom
-// @version      0.2
+// @version      0.3
 // @description  拉姆置顶，蕾姆置底
 // @author       HCLonely
 // @include      *://*/*
 // @run-at       document-end
 // @compatible   chrome 没有测试其他浏览器的兼容性
-// @require      https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js
 // @resource leimuA       https://cdn.jsdelivr.net/gh/HCLonely/blog.hclonely.com@1.2.3/img/TopLamuLeimu/leimuA.png
 // @resource leimuB       https://cdn.jsdelivr.net/gh/HCLonely/blog.hclonely.com@1.2.3/img/TopLamuLeimu/leimuB.png
 // @resource lamuA       https://cdn.jsdelivr.net/gh/HCLonely/blog.hclonely.com@1.2.3/img/TopLamuLeimu/lamuA.png
@@ -20,111 +19,137 @@
 // @grant        GM_unregisterMenuCommand
 // ==/UserScript==
 
-$(function () {
+(function () {
   const options = GM_getValue('options') || {};
-  $('body').append(`
-<div id="updown">
-  <div class="sidebar_wo" id="leimu">
-    <img src="${GM_getResourceURL('leimuA')}" alt="蕾姆" onmouseover="this.src='${GM_getResourceURL('leimuB')}'" onmouseout="this.src=${GM_getResourceURL('leimuA')}'">
-  </div>
-  <div class="sidebar_wo" id="lamu">
-      <img src="${GM_getResourceURL('lamuA')}" alt="拉姆" onmouseover="this.src='${GM_getResourceURL('lamuB')}'" onmouseout="this.src='${GM_getResourceURL('lamuA')}'">
-  </div>
-</div>`);
-  /*
-  document.addEventListener('contextmenu',function(e){
-      if ($(e.target).attr('alt') === '拉姆') {
-          $("html,body").scrollTop(0);
-          e.preventDefault();
-          return;
-      }
-      if ($(e.target).attr('alt') === '蕾姆') {
-          $("html,body").scrollTop($(document).height());
-          e.preventDefault();
-          return;
-      }
-  });
-  */
-  $("#updown > #lamu img").eq(0).click(function () {
-    $('html,body,embed[type="application/pdf"]').animate({
-      scrollTop: 0
-    }, 800);
-    return false;
-  });
-  $("#updown > #lamu img").eq(0).bind('contextmenu', function () {
-    $('html,body,embed[type="application/pdf"]').scrollTop(0);
-    return false;
-  })
-  $("#updown > #lamu img").eq(0).mouseover(function () {
-    $("#updown > #lamu img").eq(0).attr('src', GM_getResourceURL('lamuB'));
-    return false;
-  });
-  $("#updown > #lamu img").eq(0).mouseout(function () {
-    $("#updown > #lamu img").eq(0).attr('src', GM_getResourceURL('lamuA'));
-    return false;
-  });
-  $("#updown > #leimu img").eq(0).click(function () {
-    $('html,body,embed[type="application/pdf"]').animate({
-      scrollTop: $(document).height()
-    }, 800);
-    return false;
-  });
-  $("#updown > #leimu img").eq(0).bind('contextmenu', function () {
-    $('html,body,embed[type="application/pdf"]').scrollTop($(document).height());
-    return false;
-  })
-  $("#updown > #leimu img").eq(0).mouseover(function () {
-    $("#updown > #leimu img").eq(0).attr('src', GM_getResourceURL('leimuB'));
-    return false;
-  });
-  $("#updown > #leimu img").eq(0).mouseout(function () {
-    $("#updown > #leimu img").eq(0).attr('src', GM_getResourceURL('leimuA'));
-    return false;
-  });
-  if (options.keyCheck) {
-    $('#updown').hide();
-    document.addEventListener('keydown', function (e) {
-      const event = e || window.event;
-      if (event.keyCode === 17) {
-        $('#updown').show();
-        return;
+
+  // 创建容器
+  const updown = document.createElement('div');
+  updown.id = 'updown';
+
+  // 创建蕾姆角色
+  const leimu = document.createElement('div');
+  leimu.className = 'sidebar_wo';
+  leimu.id = 'leimu';
+
+  const leimuImg = document.createElement('img');
+  leimuImg.src = GM_getResourceURL('leimuA');
+  leimuImg.alt = '蕾姆';
+  leimuImg.onmouseover = () => leimuImg.src = GM_getResourceURL('leimuB');
+  leimuImg.onmouseout = () => leimuImg.src = GM_getResourceURL('leimuA');
+
+  leimu.appendChild(leimuImg);
+  updown.appendChild(leimu);
+
+  // 创建拉姆角色
+  const lamu = document.createElement('div');
+  lamu.className = 'sidebar_wo';
+  lamu.id = 'lamu';
+
+  const lamuImg = document.createElement('img');
+  lamuImg.src = GM_getResourceURL('lamuA');
+  lamuImg.alt = '拉姆';
+  lamuImg.onmouseover = () => lamuImg.src = GM_getResourceURL('lamuB');
+  lamuImg.onmouseout = () => lamuImg.src = GM_getResourceURL('lamuA');
+
+  lamu.appendChild(lamuImg);
+  updown.appendChild(lamu);
+
+  // 添加到文档
+  document.body.appendChild(updown);
+
+  // 滚动功能封装
+  const scrollToPosition = (top, smooth = true) => {
+    const targets = [
+      document.documentElement,
+      document.body,
+      ...document.querySelectorAll('embed[type="application/pdf"]')
+    ];
+
+    targets.forEach((target) => {
+      if (target && target.scrollHeight > target.clientHeight) {
+        if (smooth) {
+          target.scrollTo({
+            top: top === 'bottom' ? target.scrollHeight : top,
+            behavior: 'smooth'
+          });
+        } else {
+          target.scrollTop = top === 'bottom' ? target.scrollHeight : top;
+        }
       }
     });
-    document.addEventListener('keyup', function (e) {
-      const event = e || window.event;
-      if (event.keyCode === 17) {
-        $('#updown').hide();
-        return;
+  };
+
+  // 绑定拉姆事件
+  lamuImg.addEventListener('click', (e) => {
+    e.preventDefault();
+    scrollToPosition(0);
+  });
+
+  lamuImg.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    scrollToPosition(0, false);
+  });
+
+  // 绑定蕾姆事件
+  leimuImg.addEventListener('click', (e) => {
+    e.preventDefault();
+    scrollToPosition('bottom');
+  });
+
+  leimuImg.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    scrollToPosition('bottom', false);
+  });
+
+  // 显示/隐藏控制
+  if (options.keyCheck) {
+    updown.style.display = 'none';
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Control') {
+        updown.style.display = 'block';
+      }
+    });
+
+    document.addEventListener('keyup', (e) => {
+      if (e.key === 'Control') {
+        updown.style.display = 'none';
       }
     });
   }
-  let alwaysShow, keyCheck;
-  function alwaysShowCallback() {
+
+  // 菜单命令功能
+  let alwaysShow; let keyCheck;
+
+  const alwaysShowCallback = () => {
     options.keyCheck = true;
     GM_unregisterMenuCommand(alwaysShow);
     GM_setValue('options', options);
-    $('#updown').hide();
+    updown.style.display = 'none';
 
-    keyCheck = GM_registerMenuCommand("按 Ctrl 键显示图标", keyCheckCallback, {
+    keyCheck = GM_registerMenuCommand('按 Ctrl 键显示图标', keyCheckCallback, {
       autoClose: false
     });
-  }
-  function keyCheckCallback() {
+  };
+
+  const keyCheckCallback = () => {
     options.keyCheck = false;
     GM_unregisterMenuCommand(keyCheck);
     GM_setValue('options', options);
-    $('#updown').show();
+    updown.style.display = 'block';
 
-    alwaysShow = GM_registerMenuCommand("总是显示图标", alwaysShowCallback, {
+    alwaysShow = GM_registerMenuCommand('总是显示图标', alwaysShowCallback, {
       autoClose: false
     });
-  }
+  };
+
+  // 初始菜单注册
   if (options.keyCheck) {
-    keyCheck = GM_registerMenuCommand("按 Ctrl 键显示图标", keyCheckCallback, {
+    keyCheck = GM_registerMenuCommand('按 Ctrl 键显示图标', keyCheckCallback, {
       autoClose: false
     });
   } else {
-    alwaysShow = GM_registerMenuCommand("总是显示图标", alwaysShowCallback, {
+    alwaysShow = GM_registerMenuCommand('总是显示图标', alwaysShowCallback, {
       autoClose: false
     });
   }
@@ -186,4 +211,4 @@ $(function () {
   }
 }
 `);
-});
+}());
