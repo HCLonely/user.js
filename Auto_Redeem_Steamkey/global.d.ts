@@ -12,7 +12,7 @@ interface MyTexts {
   hideUnusedKey: string;
 }
 
-interface setting {
+interface Setting {
   newTab: boolean;
   copyListen: boolean;
   selectListen: boolean;

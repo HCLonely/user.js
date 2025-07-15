@@ -13,7 +13,11 @@
     "allowJs": true,
     "downlevelIteration":true,
     "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "typeRoots": [
+      "../node_modules/@types",
+      "./**/*.d.ts"
+    ]
   },
   "include": [
     "./**/*.ts"

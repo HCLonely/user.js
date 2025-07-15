@@ -1,3 +1,11 @@
+/*
+ * @Author       : HCLonely
+ * @Date         : 2024-09-11 15:42:02
+ * @LastEditTime : 2025-07-15 16:27:56
+ * @LastEditors  : HCLonely
+ * @FilePath     : /user.js/Auto_Redeem_Steamkey/main.ts
+ * @Description  :
+ */
 
 import { redeemKeys, registerkey, redeem, toggleUnusedKeyArea } from './redeem';
 import { asfRedeem, asfSend } from './asf';
@@ -5,6 +13,7 @@ import { getKeysByRE, arr, mouseClick, redeemAllKey, settingChange } from "./uti
 import { redeemSub, redeemSubs, cc } from "./steamWeb";
 import { css } from './css';
 
+// 初始化全局变量
 globalThis.url = window.location.href;
 globalThis.defaultSetting = {
   newTab: false,
@@ -18,14 +27,13 @@ globalThis.defaultSetting = {
   asfPort: 1242,
   asfPassword: '',
   asfBot: ''
-};
+} as const;
 globalThis.sessionID = '';
 try {
   globalThis.sessionID = g_sessionID; // eslint-disable-line camelcase
 } catch (e) {
   globalThis.sessionID = '';
 }
-if (Object.prototype.toString.call(GM_getValue('setting')) !== '[object Object]') GM_setValue('setting', globalThis.defaultSetting);
 
 globalThis.allUnusedKeys = [];
 
@@ -52,7 +60,12 @@ globalThis.keyCount = 0;
 globalThis.recvCount = 0;
 
 try {
-  if (GM_getValue<setting>('setting')?.selectListen) {
+  const setting = GM_getValue<Setting>('setting');
+  if (Object.prototype.toString.call(setting) !== '[object Object]') {
+    GM_setValue('setting', globalThis.defaultSetting);
+  }
+
+  if (setting?.selectListen) {
     // 选中激活功能
     const icon = document.createElement('div');
     icon.className = 'icon-div';
@@ -114,7 +127,7 @@ try {
   // 复制激活功能
   if (
     !/https?:\/\/store\.steampowered\.com\/account\/registerkey[\w\W]{0,}/.test(globalThis.url) &&
-    GM_getValue<setting>('setting')?.copyListen
+    setting?.copyListen
   ) {
     const activateProduct = async function (e: ClipboardEvent): Promise<void> {
       const productKey =
@@ -140,9 +153,9 @@ try {
             if (value) registerkey(productKey);
           });
         }
-      } else if (/^!addlicense.*[\d]+$/gi.test(productKey)) {
+      } else if (/^![\w\d]+\s+asf\s+.+/gi.test(productKey)) {
         if (
-          GM_getValue<setting>('setting')?.asf &&
+          setting?.asf &&
           !$('div.swal-overlay').hasClass('swal-overlay--show-modal')
         ) {
           swal({
@@ -269,7 +282,7 @@ try {
     if (/https?:\/\/store\.steampowered\.com\/account\/licenses\/\?sub=([\d]+,)+/.test(globalThis.url)) {
       setTimeout(() => { redeemSub(globalThis.url); }, 2000);
     }
-  } else if (GM_getValue<setting>('setting')?.clickListen) {
+  } else if (setting?.clickListen) {
     let htmlEl: HTMLElement | null = null;
 
     if ($('body').length > 0) {
@@ -305,7 +318,7 @@ try {
     $('#changeCountry').click(cc);
   }
 
-  if (GM_getValue<setting>('setting')?.allKeyListen) {
+  if (setting?.allKeyListen) {
     redeemAllKey();
   }
 

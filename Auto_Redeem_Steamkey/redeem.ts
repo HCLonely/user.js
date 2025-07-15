@@ -1,18 +1,60 @@
+/*
+ * @Author       : HCLonely
+ * @Date         : 2025-04-24 08:57:13
+ * @LastEditTime : 2025-07-15 16:30:07
+ * @LastEditors  : HCLonely
+ * @FilePath     : /user.js/Auto_Redeem_Steamkey/redeem.ts
+ * @Description  :
+ */
 import { webRedeem } from './steamWeb';
 import { asfRedeem } from './asf';
 import { getKeysByRE } from './utils';
 
+// 添加类型定义
+interface PurchaseLineItem {
+  packageid: number;
+  line_item_description: string;
+}
+
+interface PurchaseReceiptInfo {
+  line_items: PurchaseLineItem[];
+}
+
+interface RedeemResponse {
+  success: number;
+  purchase_result_details?: number;
+  purchase_receipt_info?: PurchaseReceiptInfo;
+}
+
+interface Setting {
+  asf: boolean;
+  asfBot?: string;
+  newTab: boolean;
+}
+
+// 常量定义
+const FAILURE_DETAILS: Record<number, string> = {
+  14: '无效激活码',
+  15: '重复激活',
+  53: '次数上限',
+  13: '地区限制',
+  9: '已拥有',
+  24: '缺少主游戏',
+  36: '需要PS3?',
+  50: '这是充值码'
+};
+
+const UNUSED_KEY_REASONS = [
+  '次数上限',
+  '地区限制',
+  '已拥有',
+  '缺少主游戏',
+  '其他错误',
+  '未知错误',
+  '网络错误或超时'
+];
+
 export function redeemKey(key: string): void {
-  const failureDetail = {
-    14: '无效激活码',
-    15: '重复激活',
-    53: '次数上限',
-    13: '地区限制',
-    9: '已拥有',
-    24: '缺少主游戏',
-    36: '需要PS3?',
-    50: '这是充值码'
-  };
   GM_xmlhttpRequest({
     url: 'https://store.steampowered.com/account/ajaxregisterkey/',
     headers: {
@@ -30,22 +72,26 @@ export function redeemKey(key: string): void {
     },
     onload(response): void {
       if (response.status === 200 && response.response) {
-        const data = response.response;
-        if (data.success === 1) {
+        const data = response.response as RedeemResponse;
+        if (data.success === 1 && data.purchase_receipt_info?.line_items[0]) {
+          const item = data.purchase_receipt_info.line_items[0];
           tableUpdateKey(
             key,
             globalThis.myTexts.success,
             globalThis.myTexts.line,
-            data.purchase_receipt_info.line_items[0].packageid,
-            data.purchase_receipt_info.line_items[0].line_item_description
+            item.packageid,
+            item.line_item_description
           );
           return;
         } else if (data.purchase_result_details !== undefined && data.purchase_receipt_info) {
-          if (!data.purchase_receipt_info.line_items[0]) {
+          const item = data.purchase_receipt_info.line_items[0];
+          const failureReason = FAILURE_DETAILS[data.purchase_result_details] || globalThis.myTexts.others;
+
+          if (!item) {
             tableUpdateKey(
               key,
               globalThis.myTexts.fail,
-              failureDetail[data.purchase_result_details] ? failureDetail[data.purchase_result_details] : globalThis.myTexts.others,
+              failureReason,
               0,
               globalThis.myTexts.nothing
             );
@@ -53,9 +99,9 @@ export function redeemKey(key: string): void {
             tableUpdateKey(
               key,
               globalThis.myTexts.fail,
-              failureDetail[data.purchase_result_details] ? failureDetail[data.purchase_result_details] : globalThis.myTexts.others,
-              data.purchase_receipt_info.line_items[0].packageid,
-              data.purchase_receipt_info.line_items[0].line_item_description
+              failureReason,
+              item.packageid,
+              item.line_item_description
             );
           }
           return;
@@ -84,15 +130,6 @@ export function setUnusedKeys(
   subId: number,
   subName: string
 ): void {
-  const unusedKeyReasons = [
-    '次数上限',
-    '地区限制',
-    '已拥有',
-    '缺少主游戏',
-    '其他错误',
-    '未知错误',
-    '网络错误或超时'
-  ];
   if (success && globalThis.allUnusedKeys.includes(key)) {
     let listObject: JQuery<HTMLElement> | undefined;
     globalThis.allUnusedKeys = globalThis.allUnusedKeys.filter((keyItem) => keyItem !== key);
@@ -103,7 +140,7 @@ export function setUnusedKeys(
         listObject.remove();
       }
     });
-  } else if (!success && !globalThis.allUnusedKeys.includes(key) && unusedKeyReasons.includes(reason)) {
+  } else if (!success && !globalThis.allUnusedKeys.includes(key) && UNUSED_KEY_REASONS.includes(reason)) {
     const listObject = $('<li></li>');
     listObject.html(
       `${key} (${reason}${subId !== 0 ? `: <code>${subId}</code> ${subName}` : ''})`
@@ -251,16 +288,14 @@ export function toggleUnusedKeyArea(): void {
   }
 }
 
-
-
 export function registerkey(key: string): void {
-  const setting = GM_getValue<setting>('setting');
+  const setting = GM_getValue<Setting>('setting');
   const keys = getKeysByRE(key);
 
-  if (setting.asf) {
+  if (setting?.asf) {
     const asfCommand = `!redeem ${setting.asfBot ? `${setting.asfBot} ` : ''}${keys.join(',')}`;
     asfRedeem(asfCommand);
-  } else if (setting.newTab) {
+  } else if (setting?.newTab) {
     const url = `https://store.steampowered.com/account/registerkey?key=${keys.join(',')}`;
     window.open(url, '_blank');
   } else {

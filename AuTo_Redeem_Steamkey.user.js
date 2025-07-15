@@ -3,7 +3,7 @@
 // @namespace   HCLonely
 // @author      HCLonely
 // @description 复制网页中的Steamkey后自动激活，3.0+版本为Beta版
-// @version     3.3.1
+// @version     3.4.0
 // @supportURL  https://keylol.com/t344489-1-1
 // @homepage    https://blog.hclonely.com/posts/71381355/
 // @iconURL     https://blog.hclonely.com/img/avatar.jpg
@@ -19,7 +19,6 @@
 // @grant       GM_xmlhttpRequest
 // @run-at      document-idle
 // @require     https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js
-// @require     https://cdn.jsdelivr.net/gh/HCLonely/user.js@latest/ARS/Auto_Redeem_Steamksy_static.min.js
 // @require     https://cdn.jsdelivr.net/npm/sweetalert@2.1.2/dist/sweetalert.min.js
 // @connect     *
 // @compatible  chrome 没有测试其他浏览器的兼容性
@@ -368,92 +367,30 @@ var asfCommands = `
 `;
 
 // asf.ts
+var getASFConfig = (setting) => ({
+  protocol: setting.asfProtocol,
+  host: setting.asfHost,
+  port: setting.asfPort,
+  password: setting.asfPassword
+});
+var getASFHeaders = (setting) => {
+  const { protocol, host, port } = getASFConfig(setting);
+  return {
+    accept: "application/json",
+    "Content-Type": "application/json",
+    Authentication: setting.asfPassword,
+    Host: `${host}:${port}`,
+    Origin: `${protocol}://${host}:${port}`,
+    Referer: `${protocol}://${host}:${port}/page/commands`
+  };
+};
+var getASFUrl = (setting) => {
+  const { protocol, host, port } = getASFConfig(setting);
+  return `${protocol}://${host}:${port}/Api/Command`;
+};
 function asfSend(command = "") {
   const setting = GM_getValue("setting") || globalThis.defaultSetting;
-  if (setting?.asf) {
-    swal({
-      closeOnClickOutside: false,
-      className: "swal-user",
-      text: "请在下方输入要执行的ASF指令：",
-      content: {
-        element: "input",
-        attributes: {
-          placeholder: "输入ASF指令"
-        }
-      },
-      //@ts-ignore
-      buttons: {
-        test: "连接测试",
-        redeem: "激活key",
-        pause: "暂停挂卡",
-        resume: "恢复挂卡",
-        "2fa": "获取令牌",
-        "2faok": "2faok",
-        more: "更多ASF指令",
-        confirm: "确定",
-        cancel: "取消"
-      }
-    }).then((value) => {
-      switch (value) {
-        case "redeem":
-          swalRedeem();
-          break;
-        case "pause":
-        case "resume":
-        case "2fa":
-        case "2faok":
-          asfRedeem(`!${value}`);
-          break;
-        case "test":
-          asfTest();
-          break;
-        case "more":
-          swal({
-            closeOnClickOutside: false,
-            className: "swal-user",
-            text: "ASF指令",
-            //@ts-ignore
-            content: $(asfCommands)[0],
-            //@ts-ignore
-            buttons: {
-              confirm: "返回",
-              cancel: "关闭"
-            }
-          }).then((value2) => {
-            if (value2) asfSend();
-          });
-          $("table.hclonely button.swal-button").on("click", function() {
-            const command2 = setting.asfBot ? $(this).parent().next().text().trim().replace(/<Bots>/gim, setting.asfBot) : $(this).parent().next().text().trim();
-            asfSend(command2);
-          });
-          break;
-        case null:
-          break;
-        default:
-          const inputValue = $(".swal-content__input").val()?.toString()?.trim();
-          if (!inputValue) {
-            swal({
-              closeOnClickOutside: false,
-              title: "ASF指令不能为空！",
-              icon: "warning",
-              //@ts-ignore
-              buttons: {
-                confirm: "确定"
-              }
-            }).then(() => {
-              asfSend(command);
-            });
-          } else {
-            const finalCommand = value || inputValue;
-            if (finalCommand) asfRedeem(finalCommand);
-          }
-          break;
-      }
-    });
-    if (command) {
-      $(".swal-content__input").val(`!${command}`);
-    }
-  } else {
+  if (!setting?.asf) {
     swal({
       closeOnClickOutside: false,
       className: "swal-user",
@@ -464,6 +401,89 @@ function asfSend(command = "") {
         confirm: "确定"
       }
     });
+    return;
+  }
+  swal({
+    closeOnClickOutside: false,
+    className: "swal-user",
+    text: "请在下方输入要执行的ASF指令：",
+    content: {
+      element: "input",
+      attributes: {
+        placeholder: "输入ASF指令"
+      }
+    },
+    //@ts-ignore
+    buttons: {
+      test: "连接测试",
+      redeem: "激活key",
+      pause: "暂停挂卡",
+      resume: "恢复挂卡",
+      "2fa": "获取令牌",
+      "2faok": "2faok",
+      more: "更多ASF指令",
+      confirm: "确定",
+      cancel: "取消"
+    }
+  }).then((value) => {
+    switch (value) {
+      case "redeem":
+        swalRedeem();
+        break;
+      case "pause":
+      case "resume":
+      case "2fa":
+      case "2faok":
+        asfRedeem(`!${value}`);
+        break;
+      case "test":
+        asfTest();
+        break;
+      case "more":
+        swal({
+          closeOnClickOutside: false,
+          className: "swal-user",
+          text: "ASF指令",
+          //@ts-ignore
+          content: $(asfCommands)[0],
+          //@ts-ignore
+          buttons: {
+            confirm: "返回",
+            cancel: "关闭"
+          }
+        }).then((value2) => {
+          if (value2) asfSend();
+        });
+        $("table.hclonely button.swal-button").on("click", function() {
+          const command2 = setting.asfBot ? $(this).parent().next().text().trim().replace(/<Bots>/gim, setting.asfBot) : $(this).parent().next().text().trim();
+          asfSend(command2);
+        });
+        break;
+      case null:
+        break;
+      default:
+        const inputValue = $(".swal-content__input").val()?.toString()?.trim();
+        if (!inputValue) {
+          swal({
+            closeOnClickOutside: false,
+            title: "ASF指令不能为空！",
+            icon: "warning",
+            //@ts-ignore
+            buttons: {
+              confirm: "确定"
+            }
+          }).then(() => {
+            asfSend(command);
+          });
+        } else {
+          const finalCommand = value || inputValue;
+          if (finalCommand) asfRedeem(finalCommand);
+        }
+        break;
+    }
+  });
+  if (command) {
+    $(".swal-content__input").val(`!${command}`);
   }
 }
 function swalRedeem() {
@@ -507,120 +527,8 @@ function swalRedeem() {
   });
 }
 function asfTest() {
-  const setting = GM_getValue("setting") || {};
-  if (setting.asf) {
-    swal({
-      closeOnClickOutside: false,
-      title: "ASF连接测试",
-      text: `正在尝试连接 "${setting.asfProtocol}://${setting.asfHost}:${setting.asfPort}/Api/Command/"`,
-      //@ts-ignore
-      buttons: {
-        confirm: "确定"
-      }
-    });
-    GM_xmlhttpRequest({
-      method: "POST",
-      url: `${setting.asfProtocol}://${setting.asfHost}:${setting.asfPort}/Api/Command/`,
-      data: '{"Command":"!stats"}',
-      responseType: "json",
-      headers: {
-        accept: "application/json",
-        "Content-Type": "application/json",
-        Authentication: setting.asfPassword,
-        Host: `${setting.asfHost}:${setting.asfPort}`,
-        Origin: `${setting.asfProtocol}://${setting.asfHost}:${setting.asfPort}`,
-        Referer: `${setting.asfProtocol}://${setting.asfHost}:${setting.asfPort}/page/commands`
-      },
-      onload(data) {
-        if (data.status === 200) {
-          if (data.response?.Success === true && data.response.Message === "OK" && data.response.Result) {
-            swal({
-              closeOnClickOutside: false,
-              title: "ASF连接成功！",
-              icon: "success",
-              text: `连接地址 "${setting.asfProtocol}://${setting.asfHost}:${setting.asfPort}/Api/Command/" 
-返回内容 "${data.response.Result.trim()}"`,
-              //@ts-ignore
-              buttons: {
-                confirm: "确定"
-              }
-            });
-          } else if (data.response?.Message) {
-            swal({
-              closeOnClickOutside: false,
-              title: "ASF连接成功？",
-              icon: "info",
-              text: `连接地址 "${setting.asfProtocol}://${setting.asfHost}:${setting.asfPort}/Api/Command/" 
-返回内容 "${data.response.Message.trim()}"`,
-              //@ts-ignore
-              buttons: {
-                confirm: "确定"
-              }
-            });
-          } else {
-            swal({
-              closeOnClickOutside: false,
-              title: "ASF连接失败！",
-              icon: "error",
-              text: `连接地址 "${setting.asfProtocol}://${setting.asfHost}:${setting.asfPort}/Api/Command/" 
-返回内容 "${data.responseText}"`,
-              //@ts-ignore
-              buttons: {
-                confirm: "确定"
-              }
-            });
-          }
-        } else {
-          swal({
-            closeOnClickOutside: false,
-            title: `ASF连接失败：${data.status}`,
-            icon: "error",
-            text: `连接地址 "${setting.asfProtocol}://${setting.asfHost}:${setting.asfPort}/Api/Command/"`,
-            //@ts-ignore
-            buttons: {
-              confirm: "确定"
-            }
-          });
-        }
-      },
-      onabort() {
-        swal({
-          closeOnClickOutside: false,
-          title: "ASF连接失败：aborted",
-          icon: "error",
-          text: `连接地址 "${setting.asfProtocol}://${setting.asfHost}:${setting.asfPort}/Api/Command/"`,
-          //@ts-ignore
-          buttons: {
-            confirm: "确定"
-          }
-        });
-      },
-      onerror() {
-        swal({
-          closeOnClickOutside: false,
-          title: "ASF连接失败：error",
-          icon: "error",
-          text: `连接地址 "${setting.asfProtocol}://${setting.asfHost}:${setting.asfPort}/Api/Command/"`,
-          //@ts-ignore
-          buttons: {
-            confirm: "确定"
-          }
-        });
-      },
-      ontimeout() {
-        swal({
-          closeOnClickOutside: false,
-          title: "ASF连接失败：timeout",
-          icon: "error",
-          text: `连接地址 "${setting.asfProtocol}://${setting.asfHost}:${setting.asfPort}/Api/Command/"`,
-          //@ts-ignore
-          buttons: {
-            confirm: "确定"
-          }
-        });
-      }
-    });
-  } else {
+  const setting = GM_getValue("setting") || globalThis.defaultSetting;
+  if (!setting.asf) {
     swal({
       closeOnClickOutside: false,
       title: "请先在设置中开启ASF功能",
@@ -630,10 +538,103 @@ function asfTest() {
         confirm: "确定"
       }
     });
+    return;
   }
+  const apiUrl = getASFUrl(setting);
+  swal({
+    closeOnClickOutside: false,
+    title: "ASF连接测试",
+    text: `正在尝试连接 "${apiUrl}"`,
+    //@ts-ignore
+    buttons: {
+      confirm: "确定"
+    }
+  });
+  GM_xmlhttpRequest({
+    method: "POST",
+    url: apiUrl,
+    data: '{"Command":"!stats"}',
+    responseType: "json",
+    headers: getASFHeaders(setting),
+    onload(data) {
+      const response = data.response;
+      if (data.status === 200) {
+        if (response?.Success === true && response.Message === "OK" && response.Result) {
+          swal({
+            closeOnClickOutside: false,
+            title: "ASF连接成功！",
+            icon: "success",
+            text: `连接地址 "${apiUrl}" 
+返回内容 "${response.Result.trim()}"`,
+            //@ts-ignore
+            buttons: {
+              confirm: "确定"
+            }
+          });
+        } else if (response?.Message) {
+          swal({
+            closeOnClickOutside: false,
+            title: "ASF连接成功？",
+            icon: "info",
+            text: `连接地址 "${apiUrl}" 
+返回内容 "${response.Message.trim()}"`,
+            //@ts-ignore
+            buttons: {
+              confirm: "确定"
+            }
+          });
+        } else {
+          swal({
+            closeOnClickOutside: false,
+            title: "ASF连接失败！",
+            icon: "error",
+            text: `连接地址 "${apiUrl}" 
+返回内容 "${data.responseText}"`,
+            //@ts-ignore
+            buttons: {
+              confirm: "确定"
+            }
+          });
+        }
+      } else {
+        swal({
+          closeOnClickOutside: false,
+          title: `ASF连接失败：${data.status}`,
+          icon: "error",
+          text: `连接地址 "${apiUrl}"`,
+          //@ts-ignore
+          buttons: {
+            confirm: "确定"
+          }
+        });
+      }
+    },
+    onabort() {
+      showErrorDialog("ASF连接失败：aborted", apiUrl);
+    },
+    onerror() {
+      showErrorDialog("ASF连接失败：error", apiUrl);
+    },
+    ontimeout() {
+      showErrorDialog("ASF连接失败：timeout", apiUrl);
+    }
+  });
+}
+function showErrorDialog(title, apiUrl) {
+  swal({
+    closeOnClickOutside: false,
+    title,
+    icon: "error",
+    text: `连接地址 "${apiUrl}"`,
+    //@ts-ignore
+    buttons: {
+      confirm: "确定"
+    }
+  });
 }
 function asfRedeem(command) {
   const setting = GM_getValue("setting") || globalThis.defaultSetting;
+  const apiUrl = getASFUrl(setting);
   const textarea = document.createElement("textarea");
   textarea.setAttribute("class", "asf-output");
   textarea.setAttribute("readonly", "readonly");
@@ -665,17 +666,10 @@ function asfRedeem(command) {
   });
   GM_xmlhttpRequest({
     method: "POST",
-    url: `${setting.asfProtocol}://${setting.asfHost}:${setting.asfPort}/Api/Command`,
+    url: apiUrl,
     data: JSON.stringify({ Command: command }),
     responseType: "json",
-    headers: {
-      accept: "application/json",
-      "Content-Type": "application/json",
-      Authentication: setting.asfPassword,
-      Host: `${setting.asfHost}:${setting.asfPort}`,
-      Origin: `${setting.asfProtocol}://${setting.asfHost}:${setting.asfPort}`,
-      Referer: `${setting.asfProtocol}://${setting.asfHost}:${setting.asfPort}/page/commands`
-    },
+    headers: getASFHeaders(setting),
     onload(data) {
       console.log(data);
       console.log(command);
@@ -752,7 +746,7 @@ function mouseClick($2, e) {
   const x = e.pageX;
   const y = e.pageY;
   $i.css({
-    "z-index": 1e19,
+    "z-index": 999999999999999,
     top: y - 20,
     left: x,
     position: "absolute",
@@ -916,9 +910,7 @@ function settingChange() {
     closeOnClickOutside: false,
     className: "asf-class",
     title: "全局设置",
-    //@ts-ignore
     content: div,
-    //@ts-ignore
     buttons: {
       save: "保存",
       showHistory: "上次激活记录",
@@ -940,7 +932,6 @@ function settingChange() {
         icon: "success",
         title: "保存成功！",
         text: "刷新页面后生效！",
-        //@ts-ignore
         buttons: {
           confirm: "确定"
         }
@@ -959,9 +950,7 @@ function showHistory() {
       closeOnClickOutside: false,
       className: "swal-user",
       title: "上次激活记录：",
-      //@ts-ignore
       content: $(history[0])[0],
-      //@ts-ignore
       buttons: {
         confirm: "确定"
       }
@@ -974,7 +963,6 @@ function showHistory() {
       closeOnClickOutside: false,
       title: "没有操作记录！",
       icon: "error",
-      //@ts-ignore
       buttons: {
         cancel: "关闭"
       }
@@ -985,12 +973,10 @@ function showSwitchKey() {
   swal({
     closeOnClickOutside: false,
     title: "请选择要转换成什么格式：",
-    //@ts-ignore
     buttons: {
       confirm: "确定",
       cancel: "关闭"
     },
-    //@ts-ignore
     content: $('<div class="switch-key"><div class="switch-key-left"><p>key</p><p>key</p><p>key</p><input name="keyType" type="radio" value="1"/></div><div class="switch-key-right"><p>&nbsp;</p><p>key,key,key</p><p>&nbsp;</p><input name="keyType" type="radio" value="2"/></div></div>')[0]
   }).then((value) => {
     if (value) {
@@ -1016,9 +1002,7 @@ function showSwitchArea(type) {
   swal({
     closeOnClickOutside: false,
     title: "请输入要转换的key:",
-    //@ts-ignore
     content: $('<textarea style="width: 80%;height: 100px;"></textarea>')[0],
-    //@ts-ignore
     buttons: {
       confirm: "转换",
       back: "返回",
@@ -1052,9 +1036,7 @@ function showKey(key, type) {
     closeOnClickOutside: false,
     icon: "success",
     title: "转换成功！",
-    //@ts-ignore
     content: $(`<textarea style="width: 80%;height: 100px;" readonly="readonly">${key}</textarea>`)[0],
-    //@ts-ignore
     buttons: {
       confirm: "返回",
       cancel: "关闭"
@@ -1080,36 +1062,35 @@ function getKeysByRE(text) {
 }
 
 // steamWeb.ts
+var STEAM_HOSTS = {
+  STORE: "store.steampowered.com",
+  LOGIN: "login.steampowered.com"
+};
+var handleError = (error, message) => {
+  console.error(`${message}:`, error);
+  return false;
+};
 async function refreshToken() {
   try {
-    const host = "store.steampowered.com";
     const formData = new FormData();
-    formData.append("redir", `https://${host}/`);
-    const { result, statusText, status, data } = await httpRequest({
-      url: "https://login.steampowered.com/jwt/ajaxrefresh",
+    formData.append("redir", `https://${STEAM_HOSTS.STORE}/`);
+    const response = await httpRequest({
+      url: `https://${STEAM_HOSTS.LOGIN}/jwt/ajaxrefresh`,
       method: "POST",
       responseType: "json",
       headers: {
-        Host: "login.steampowered.com",
-        Origin: `https://${host}`,
-        Referer: `https://${host}/`
+        Host: STEAM_HOSTS.LOGIN,
+        Origin: `https://${STEAM_HOSTS.STORE}`,
+        Referer: `https://${STEAM_HOSTS.STORE}/`
       },
       data: formData
     });
-    if (result === "Success") {
-      if (data?.response?.success) {
-        const tokenSet = await setStoreToken(data.response);
-        if (tokenSet) {
-          return true;
-        }
-        return false;
-      }
-      return false;
+    if (response.result === "Success" && response.data?.response?.success) {
+      return await setStoreToken(response.data.response);
     }
     return false;
   } catch (error) {
-    console.error(error);
-    return false;
+    return handleError(error, "Failed to refresh token");
   }
 }
 async function setStoreToken(param) {
@@ -1190,103 +1171,101 @@ async function updateStoreAuth(retry = false) {
     return false;
   }
 }
-function webRedeem(key) {
-  const div = $('<div id="registerkey_examples_text"><div class="notice_box_content" id="unusedKeyArea"> <b>未使用的Key：</b><br><div><ol id="unusedKeys" align="left"></ol></div></div><div class="table-responsive table-condensed"><table class="table table-hover hclonely"><caption><h2>激活记录</h2></caption><thead><th>No.</th><th>Key</th><th>结果</th><th>详情</th><th>Sub</th></thead><tbody></tbody></table></div><br></div>')[0];
-  swal({
-    closeOnClickOutside: false,
+var showSwalMessage = (options) => {
+  return swal({
     className: "swal-user",
+    closeOnClickOutside: false,
+    ...options
+  });
+};
+function webRedeem(key) {
+  const redeemContent = createRedeemContent();
+  showSwalMessage({
     title: "正在获取sessionID...",
-    //@ts-ignore
     buttons: {
       confirm: "关闭"
     }
   });
-  if (globalThis.sessionID) {
-    swal({
-      closeOnClickOutside: false,
-      className: "swal-user",
-      title: "正在激活steam key...",
-      //@ts-ignore
-      content: div,
-      //@ts-ignore
-      buttons: {
-        confirm: "提取未使用key",
-        cancel: "关闭"
-      }
-    }).then((v) => {
-      let value = "";
-      const textarea = $(".swal-content textarea");
-      if (textarea.length > 0) {
-        value = textarea.val()?.toString() || "";
-      }
-      GM_setValue("history", [$(".swal-content").html() || "", value]);
-      if (v) {
-        GM_setClipboard(arr(getKeysByRE($("#unusedKeys").text() || "")).join(","));
-        swal({ title: "复制成功！", icon: "success" });
-      }
-    });
-    redeemKeys(key);
-  } else {
-    GM_xmlhttpRequest({
-      method: "GET",
-      url: "https://store.steampowered.com/account/registerkey",
-      onload: async (data) => {
-        if (data.finalUrl.includes("login") && !await updateStoreAuth()) {
-          swal({
-            closeOnClickOutside: false,
-            icon: "warning",
-            title: "请先登录steam！",
-            //@ts-ignore
-            buttons: {
-              confirm: "登录",
-              cancel: "关闭"
-            }
-          }).then((value) => {
-            if (value) window.open("https://store.steampowered.com/login/", "_blank");
-          });
-        } else {
-          if (data.status === 200) {
-            globalThis.sessionID = data.responseText?.match(/g_sessionID = "(.+?)";/)?.[1] || "";
-            swal({
-              closeOnClickOutside: false,
-              className: "swal-user",
-              title: "正在激活steam key...",
-              //@ts-ignore
-              content: div,
-              //@ts-ignore
-              buttons: {
-                confirm: "提取未使用key",
-                cancel: "关闭"
-              }
-            }).then((v) => {
-              let value = "";
-              const textarea = $(".swal-content textarea");
-              if (textarea.length > 0) {
-                value = textarea.val()?.toString() || "";
-              }
-              GM_setValue("history", [$(".swal-content").html() || "", value]);
-              if (v) {
-                GM_setClipboard(arr(getKeysByRE($("#unusedKeys").text() || "")).join(","));
-                swal({ title: "复制成功！", icon: "success" });
-              }
-            });
-            redeemKeys(key);
-          } else {
-            swal({
-              closeOnClickOutside: false,
-              className: "swal-user",
-              title: "获取sessionID失败！",
-              icon: "error",
-              //@ts-ignore
-              buttons: {
-                confirm: "关闭"
-              }
-            });
+  if (!globalThis.sessionID) {
+    handleNoSession(key, redeemContent);
+    return;
+  }
+  showRedeemDialog(key, redeemContent);
+}
+function createRedeemContent() {
+  return $(`
+    <div id="registerkey_examples_text">
+      <div class="notice_box_content" id="unusedKeyArea">
+        <b>未使用的Key：</b><br>
+        <div><ol id="unusedKeys" align="left"></ol></div>
+      </div>
+      <div class="table-responsive table-condensed">
+        <table class="table table-hover hclonely">
+          <caption><h2>激活记录</h2></caption>
+          <thead>
+            <th>No.</th><th>Key</th><th>结果</th><th>详情</th><th>Sub</th>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <br>
+    </div>
+  `)[0];
+}
+function handleNoSession(key, redeemContent) {
+  GM_xmlhttpRequest({
+    method: "GET",
+    url: "https://store.steampowered.com/account/registerkey",
+    onload: async (data) => {
+      if (data.finalUrl.includes("login") && !await updateStoreAuth()) {
+        showSwalMessage({
+          title: "请先登录steam！",
+          icon: "warning",
+          buttons: {
+            confirm: "登录",
+            cancel: "关闭"
           }
+        }).then((value) => {
+          if (value) window.open("https://store.steampowered.com/login/", "_blank");
+        });
+      } else {
+        if (data.status === 200) {
+          globalThis.sessionID = data.responseText?.match(/g_sessionID = "(.+?)";/)?.[1] || "";
+          showRedeemDialog(key, redeemContent);
+        } else {
+          showSwalMessage({
+            title: "获取sessionID失败！",
+            icon: "error",
+            buttons: {
+              confirm: "关闭"
+            }
+          });
         }
       }
-    });
-  }
+    }
+  });
+}
+function showRedeemDialog(key, redeemContent) {
+  showSwalMessage({
+    title: "正在激活steam key...",
+    content: redeemContent,
+    buttons: {
+      confirm: "提取未使用key",
+      cancel: "关闭"
+    }
+  }).then((v) => {
+    let value = "";
+    const textarea = $(".swal-content textarea");
+    if (textarea.length > 0) {
+      value = textarea.val()?.toString() || "";
+    }
+    GM_setValue("history", [$(".swal-content").html() || "", value]);
+    if (v) {
+      GM_setClipboard(arr(getKeysByRE($("#unusedKeys").text() || "")).join(","));
+      showSwalMessage({ title: "复制成功！", icon: "success" });
+    }
+  });
+  redeemKeys(key);
 }
 function redeemSub(e) {
   const subText = e || $("#gameSub").val();
@@ -1343,66 +1322,78 @@ function redeemSubs() {
     redeemSub(key);
   }
 }
-function cc() {
-  swal({
-    closeOnClickOutside: false,
-    icon: "info",
-    title: "正在获取当前国家/地区..."
-  });
-  $.ajax({
-    url: "//store.steampowered.com/cart/",
-    type: "get",
-    success(data) {
-      const cartConfigRaw = data.match(/data-cart_config="(.*?)"/)?.[1];
-      const temp = document.createElement("div");
-      temp.innerHTML = cartConfigRaw || "";
-      const cartConfigStr = temp.textContent || temp.innerText || "";
-      let cartConfig;
-      try {
-        cartConfig = JSON.parse(cartConfigStr);
-      } catch (e) {
-        console.error(e);
-        swal("获取当前国家/地区失败！", "", "error");
-        return;
-      }
-      const userInfoRaw = data.match(/data-userinfo="(.*?)"/)?.[1];
-      const temp1 = document.createElement("div");
-      temp1.innerHTML = userInfoRaw || "";
-      const userInfoStr = temp1.textContent || temp1.innerText || "";
-      let userInfo;
-      try {
-        userInfo = JSON.parse(userInfoStr);
-      } catch (e) {
-        console.error(e);
-        swal("获取当前国家/地区失败！", "", "error");
-        return;
-      }
-      if (cartConfig && userInfo && Object.keys(cartConfig.rgUserCountryOptions).length > 2) {
-        const divContent = data.match(/<div class="currency_change_options">([\w\W]*?)<p/i)?.[1].trim();
-        const div = `${divContent}</div>`;
-        swal({
-          closeOnClickOutside: false,
-          title: `当前国家/地区：${cartConfig.rgUserCountryOptions[userInfo.country_code] || userInfo.country_code}`,
-          //@ts-ignore
-          content: $(`<div>${div}</div>`)[0]
-        });
-        $(".currency_change_option").click(function() {
-          const country = $(this).attr("data-country");
-          if (country) {
-            changeCountry(country);
-          }
-        });
-      } else {
-        swal("需要挂相应地区的梯子！", "", "warning");
-      }
-    },
-    error: () => {
-      swal("获取当前国家/地区失败！", "", "error");
+async function cc() {
+  try {
+    showSwalMessage({ title: "正在获取当前国家/地区...", icon: "info" });
+    const cartData = await fetchCartData();
+    const { cartConfig, userInfo } = parseCartData(cartData);
+    if (!isValidCartConfig(cartConfig, userInfo)) {
+      showSwalMessage({ title: "需要挂相应地区的梯子！", icon: "warning" });
+      return;
     }
+    showCountryChangeDialog(cartConfig, userInfo, cartData);
+  } catch (error) {
+    showSwalMessage({ title: "获取当前国家/地区失败！", icon: "error" });
+  }
+}
+function fetchCartData() {
+  return new Promise((resolve, reject) => {
+    $.ajax({
+      url: "//store.steampowered.com/cart/",
+      type: "get",
+      success: (data) => resolve(data),
+      error: reject
+    });
+  });
+}
+function parseCartData(data) {
+  const cartConfigRaw = data.match(/data-cart_config="(.*?)"/)?.[1];
+  const temp = document.createElement("div");
+  temp.innerHTML = cartConfigRaw || "";
+  const cartConfigStr = temp.textContent || temp.innerText || "";
+  try {
+    const cartConfig = JSON.parse(cartConfigStr);
+    if (!cartConfig || !cartConfig.rgUserCountryOptions) {
+      throw new Error("Invalid cartConfig format");
+    }
+    const userInfoRaw = data.match(/data-userinfo="(.*?)"/)?.[1];
+    const temp1 = document.createElement("div");
+    temp1.innerHTML = userInfoRaw || "";
+    const userInfoStr = temp1.textContent || temp1.innerText || "";
+    const userInfo = JSON.parse(userInfoStr);
+    if (!userInfo || !userInfo.country_code) {
+      throw new Error("Invalid userInfo format");
+    }
+    return {
+      cartConfig,
+      userInfo
+    };
+  } catch (e) {
+    throw new Error("Failed to parse Steam data");
+  }
+}
+function isValidCartConfig(cartConfig, userInfo) {
+  return cartConfig && userInfo && Object.keys(cartConfig.rgUserCountryOptions).length > 2;
+}
+function showCountryChangeDialog(cartConfig, userInfo, cartData) {
+  const divContent = cartData.match(/<div class="currency_change_options">([\w\W]*?)<p/i)?.[1]?.trim();
+  const div = `${divContent || ""}</div>`;
+  showSwalMessage({
+    closeOnClickOutside: false,
+    title: `当前国家/地区：${cartConfig.rgUserCountryOptions[userInfo.country_code] || userInfo.country_code}`,
+    //@ts-ignore
+    content: $(`<div>${div}</div>`)[0]
+  }).then(() => {
+    $(".currency_change_option").click(function() {
+      const country = $(this).attr("data-country");
+      if (country) {
+        changeCountry(country);
+      }
+    });
   });
 }
 function changeCountry(country) {
-  swal({
+  showSwalMessage({
     closeOnClickOutside: false,
     icon: "info",
     title: "正在更换国家/地区..."
@@ -1428,7 +1419,7 @@ function changeCountry(country) {
             cartConfig = JSON.parse(cartConfigStr);
           } catch (e) {
             console.error(e);
-            swal("获取当前国家/地区失败！", "", "error");
+            showSwalMessage({ title: "获取当前国家/地区失败！", icon: "error" });
             return;
           }
           const userInfoRaw = data.match(/data-userinfo="(.*?)"/)?.[1];
@@ -1440,32 +1431,33 @@ function changeCountry(country) {
             userInfo = JSON.parse(userInfoStr);
           } catch (e) {
             console.error(e);
-            swal("获取当前国家/地区失败！", "", "error");
+            showSwalMessage({ title: "获取当前国家/地区失败！", icon: "error" });
             return;
           }
           const divContent = data.match(/<div class="currency_change_options">([\w\W]*?)<p/i)?.[1]?.trim();
           const div = `${divContent || ""}</div>`;
           if (userInfo?.country_code === country) {
-            swal("更换成功！", "", "success").then(() => {
-              swal({
+            showSwalMessage({ title: "更换成功！", icon: "success" }).then(() => {
+              showSwalMessage({
                 closeOnClickOutside: false,
                 title: `当前国家/地区：${cartConfig?.rgUserCountryOptions[userInfo.country_code] || userInfo.country_code}`,
                 //@ts-ignore
                 content: $(`<div>${div}</div>`)[0]
-              });
-              $(".currency_change_option").click(function() {
-                const newCountry = $(this).attr("data-country");
-                if (newCountry) {
-                  changeCountry(newCountry);
-                }
+              }).then(() => {
+                $(".currency_change_option").click(function() {
+                  const newCountry = $(this).attr("data-country");
+                  if (newCountry) {
+                    changeCountry(newCountry);
+                  }
+                });
               });
             });
           } else {
-            swal("更换失败！", "", "error");
+            showSwalMessage({ title: "更换失败！", icon: "error" });
           }
         },
         error: () => {
-          swal("获取当前国家/地区失败！", "", "error");
+          showSwalMessage({ title: "获取当前国家/地区失败！", icon: "error" });
         }
       });
     }
@@ -1473,17 +1465,26 @@ function changeCountry(country) {
 }
 
 // redeem.ts
+var FAILURE_DETAILS = {
+  14: "无效激活码",
+  15: "重复激活",
+  53: "次数上限",
+  13: "地区限制",
+  9: "已拥有",
+  24: "缺少主游戏",
+  36: "需要PS3?",
+  50: "这是充值码"
+};
+var UNUSED_KEY_REASONS = [
+  "次数上限",
+  "地区限制",
+  "已拥有",
+  "缺少主游戏",
+  "其他错误",
+  "未知错误",
+  "网络错误或超时"
+];
 function redeemKey(key) {
-  const failureDetail = {
-    14: "无效激活码",
-    15: "重复激活",
-    53: "次数上限",
-    13: "地区限制",
-    9: "已拥有",
-    24: "缺少主游戏",
-    36: "需要PS3?",
-    50: "这是充值码"
-  };
   GM_xmlhttpRequest({
     url: "https://store.steampowered.com/account/ajaxregisterkey/",
     headers: {
@@ -1502,21 +1503,24 @@ function redeemKey(key) {
     onload(response) {
       if (response.status === 200 && response.response) {
         const data = response.response;
-        if (data.success === 1) {
+        if (data.success === 1 && data.purchase_receipt_info?.line_items[0]) {
+          const item = data.purchase_receipt_info.line_items[0];
           tableUpdateKey(
             key,
             globalThis.myTexts.success,
             globalThis.myTexts.line,
-            data.purchase_receipt_info.line_items[0].packageid,
-            data.purchase_receipt_info.line_items[0].line_item_description
+            item.packageid,
+            item.line_item_description
           );
           return;
         } else if (data.purchase_result_details !== void 0 && data.purchase_receipt_info) {
-          if (!data.purchase_receipt_info.line_items[0]) {
+          const item = data.purchase_receipt_info.line_items[0];
+          const failureReason = FAILURE_DETAILS[data.purchase_result_details] || globalThis.myTexts.others;
+          if (!item) {
             tableUpdateKey(
               key,
               globalThis.myTexts.fail,
-              failureDetail[data.purchase_result_details] ? failureDetail[data.purchase_result_details] : globalThis.myTexts.others,
+              failureReason,
               0,
               globalThis.myTexts.nothing
             );
@@ -1524,9 +1528,9 @@ function redeemKey(key) {
             tableUpdateKey(
               key,
               globalThis.myTexts.fail,
-              failureDetail[data.purchase_result_details] ? failureDetail[data.purchase_result_details] : globalThis.myTexts.others,
-              data.purchase_receipt_info.line_items[0].packageid,
-              data.purchase_receipt_info.line_items[0].line_item_description
+              failureReason,
+              item.packageid,
+              item.line_item_description
             );
           }
           return;
@@ -1548,15 +1552,6 @@ function redeemKey(key) {
   });
 }
 function setUnusedKeys(key, success, reason, subId, subName) {
-  const unusedKeyReasons = [
-    "次数上限",
-    "地区限制",
-    "已拥有",
-    "缺少主游戏",
-    "其他错误",
-    "未知错误",
-    "网络错误或超时"
-  ];
   if (success && globalThis.allUnusedKeys.includes(key)) {
     let listObject;
     globalThis.allUnusedKeys = globalThis.allUnusedKeys.filter((keyItem) => keyItem !== key);
@@ -1566,7 +1561,7 @@ function setUnusedKeys(key, success, reason, subId, subName) {
         listObject.remove();
       }
     });
-  } else if (!success && !globalThis.allUnusedKeys.includes(key) && unusedKeyReasons.includes(reason)) {
+  } else if (!success && !globalThis.allUnusedKeys.includes(key) && UNUSED_KEY_REASONS.includes(reason)) {
     const listObject = $("<li></li>");
     listObject.html(
       `${key} (${reason}${subId !== 0 ? `: <code>${subId}</code> ${subName}` : ""})`
@@ -1687,10 +1682,10 @@ function toggleUnusedKeyArea() {
 function registerkey(key) {
   const setting = GM_getValue("setting");
   const keys = getKeysByRE(key);
-  if (setting.asf) {
+  if (setting?.asf) {
     const asfCommand = `!redeem ${setting.asfBot ? `${setting.asfBot} ` : ""}${keys.join(",")}`;
     asfRedeem(asfCommand);
-  } else if (setting.newTab) {
+  } else if (setting?.newTab) {
     const url = `https://store.steampowered.com/account/registerkey?key=${keys.join(",")}`;
     window.open(url, "_blank");
   } else {
@@ -1956,7 +1951,6 @@ try {
 } catch (e) {
   globalThis.sessionID = "";
 }
-if (Object.prototype.toString.call(GM_getValue("setting")) !== "[object Object]") GM_setValue("setting", globalThis.defaultSetting);
 globalThis.allUnusedKeys = [];
 globalThis.selecter = globalThis.url.includes("/account/registerkey") ? "" : ".hclonely ";
 globalThis.myTexts = {
@@ -1977,7 +1971,11 @@ globalThis.waitingSeconds = 20;
 globalThis.keyCount = 0;
 globalThis.recvCount = 0;
 try {
-  if (GM_getValue("setting")?.selectListen) {
+  const setting = GM_getValue("setting");
+  if (Object.prototype.toString.call(setting) !== "[object Object]") {
+    GM_setValue("setting", globalThis.defaultSetting);
+  }
+  if (setting?.selectListen) {
     const icon = document.createElement("div");
     icon.className = "icon-div";
     icon.title = "激活";
@@ -2015,7 +2013,7 @@ try {
       registerkey(productKey);
     });
   }
-  if (!/https?:\/\/store\.steampowered\.com\/account\/registerkey[\w\W]{0,}/.test(globalThis.url) && GM_getValue("setting")?.copyListen) {
+  if (!/https?:\/\/store\.steampowered\.com\/account\/registerkey[\w\W]{0,}/.test(globalThis.url) && setting?.copyListen) {
     const activateProduct = async function(e) {
       const productKey = window.getSelection()?.toString()?.trim() || e.target?.value;
       const clipboardSuccess = await navigator.clipboard.writeText(productKey).then(() => true, () => false);
@@ -2033,8 +2031,8 @@ try {
             if (value) registerkey(productKey);
           });
         }
-      } else if (/^!addlicense.*[\d]+$/gi.test(productKey)) {
-        if (GM_getValue("setting")?.asf && !$("div.swal-overlay").hasClass("swal-overlay--show-modal")) {
+      } else if (/^![\w\d]+\s+asf\s+.+/gi.test(productKey)) {
+        if (setting?.asf && !$("div.swal-overlay").hasClass("swal-overlay--show-modal")) {
           swal({
             closeOnClickOutside: false,
             className: "swal-user",
@@ -2146,7 +2144,7 @@ try {
         redeemSub(globalThis.url);
       }, 2e3);
     }
-  } else if (GM_getValue("setting")?.clickListen) {
+  } else if (setting?.clickListen) {
     let htmlEl = null;
     if ($("body").length > 0) {
       $("body").click((event) => {
@@ -2169,7 +2167,7 @@ try {
     $("#account_pulldown").before('<span id="changeCountry" style="cursor:pointer;display:inline-block;padding-left:4px;line-height:25px" class="global_action_link persona_name_text_content">更改国家/地区 |</span>');
     $("#changeCountry").click(cc);
   }
-  if (GM_getValue("setting")?.allKeyListen) {
+  if (setting?.allKeyListen) {
     redeemAllKey();
   }
   GM_addStyle(css);

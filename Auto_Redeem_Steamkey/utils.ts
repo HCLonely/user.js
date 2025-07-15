@@ -1,3 +1,11 @@
+/*
+ * @Author       : HCLonely
+ * @Date         : 2025-04-24 09:20:41
+ * @LastEditTime : 2025-07-15 16:56:33
+ * @LastEditors  : HCLonely
+ * @FilePath     : /user.js/Auto_Redeem_Steamkey/utils.ts
+ * @Description  :
+ */
 import { webRedeem } from "./steamWeb";
 import { asfRedeem } from "./asf";
 import type swal from "sweetalert";
@@ -7,7 +15,7 @@ export function mouseClick($: JQueryStatic, e: JQuery.ClickEvent): void {
   const x = e.pageX;
   const y = e.pageY;
   $i.css({
-    'z-index': 9999999999999999999,
+    'z-index': 999999999999999,
     top: y - 20,
     left: x,
     position: 'absolute',
@@ -25,7 +33,7 @@ export function addBtn(): HTMLButtonElement {
   const btn = $('<button id="allKey" class="btn btn-default" key="" style="display:none;z-index:9999">激活本页面所有key(共0个)</button>')[0] as HTMLButtonElement;
 
   btn.onclick = function () {
-    const setting = GM_getValue<setting>('setting') || {};
+    const setting = GM_getValue<Setting>('setting') || {};
     const keys = getKeysByRE($(this).attr('key') || '');
     if (setting.asf) {
       asfRedeem(`!redeem ${setting.asfBot} ${keys.join(',')}`);
@@ -74,6 +82,10 @@ export function arr<T>(arr: T[]): T[] {
   return [...new Set(arr)];
 }
 
+export interface GMRequestDetails extends MonkeyXhrBasicDetails {
+  dataType?: string;
+}
+
 export async function httpRequest(options: GMRequestDetails, times = 0): Promise<any> {
   if (window.TRACE) {
     console.trace('%cAuto-Task[Debug]:', 'color:blue');
@@ -81,11 +93,11 @@ export async function httpRequest(options: GMRequestDetails, times = 0): Promise
 
   try {
     const result: {
-      result: string,
-      statusText: string,
-      status: number,
-      data: any,
-      options: GMRequestDetails
+      result: string;
+      statusText: string;
+      status: number;
+      data: any;
+      options: GMRequestDetails;
     } = await new Promise((resolve) => {
       if (options.dataType) {
         options.responseType = options.dataType;
@@ -164,9 +176,8 @@ export async function httpRequest(options: GMRequestDetails, times = 0): Promise
   }
 }
 
-
 export function settingChange(): void {
-  const setting: setting = GM_getValue<setting>('setting') || globalThis.defaultSetting;
+  const setting = GM_getValue<Setting>('setting') || globalThis.defaultSetting;
   const div = $(`
       <div id="hclonely-asf">
         <input type="checkbox" name="newTab" ${setting.newTab ? 'checked=checked' : ''} title="开启ASF激活后此功能无效"/>
@@ -199,9 +210,7 @@ export function settingChange(): void {
     closeOnClickOutside: false,
     className: 'asf-class',
     title: '全局设置',
-    //@ts-ignore
     content: div,
-    //@ts-ignore
     buttons: {
       save: '保存',
       showHistory: '上次激活记录',
@@ -210,11 +219,10 @@ export function settingChange(): void {
     }
   }).then((value: string | null) => {
     if (value === 'save') {
-      const newSetting: Partial<setting> = {};
+      const newSetting: Partial<Setting> = {};
       $('#hclonely-asf input').each(function (index, element) {
-        const name = $(element).attr('name') as keyof setting;
+        const name = $(element).attr('name') as keyof Setting;
         if (name) {
-          //@ts-ignore
           newSetting[name] = (element as HTMLInputElement).type === 'checkbox' ? (element as HTMLInputElement).checked : (element as HTMLInputElement).value;
         }
       });
@@ -224,7 +232,6 @@ export function settingChange(): void {
         icon: 'success',
         title: '保存成功！',
         text: '刷新页面后生效！',
-        //@ts-ignore
         buttons: {
           confirm: '确定'
         }
@@ -245,9 +252,7 @@ export function showHistory(): void {
       closeOnClickOutside: false,
       className: 'swal-user',
       title: '上次激活记录：',
-      //@ts-ignore
       content: $(history[0])[0],
-      //@ts-ignore
       buttons: {
         confirm: '确定'
       }
@@ -260,7 +265,6 @@ export function showHistory(): void {
       closeOnClickOutside: false,
       title: '没有操作记录！',
       icon: 'error',
-      //@ts-ignore
       buttons: {
         cancel: '关闭'
       }
@@ -272,12 +276,10 @@ export function showSwitchKey(): void {
   swal({
     closeOnClickOutside: false,
     title: '请选择要转换成什么格式：',
-    //@ts-ignore
     buttons: {
       confirm: '确定',
       cancel: '关闭'
     },
-    //@ts-ignore
     content: $('<div class="switch-key"><div class="switch-key-left"><p>key</p><p>key</p><p>key</p><input name="keyType" type="radio" value="1"/></div><div class="switch-key-right"><p>&nbsp;</p><p>key,key,key</p><p>&nbsp;</p><input name="keyType" type="radio" value="2"/></div></div>')[0]
   }).then((value: string | null) => {
     if (value) {
@@ -300,15 +302,11 @@ export function showSwitchKey(): void {
   });
 }
 
-
-
 export function showSwitchArea(type: string): void {
   swal({
     closeOnClickOutside: false,
     title: '请输入要转换的key:',
-    //@ts-ignore
     content: $('<textarea style="width: 80%;height: 100px;"></textarea>')[0],
-    //@ts-ignore
     buttons: {
       confirm: '转换',
       back: '返回',
@@ -344,9 +342,7 @@ export function showKey(key: string, type: string): void {
     closeOnClickOutside: false,
     icon: 'success',
     title: '转换成功！',
-    //@ts-ignore
     content: $(`<textarea style="width: 80%;height: 100px;" readonly="readonly">${key}</textarea>`)[0],
-    //@ts-ignore
     buttons: {
       confirm: '返回',
       cancel: '关闭'
@@ -367,7 +363,7 @@ export function getKeysByRE(text: string): string[] {
   const keys: string[] = [];
 
   let result: RegExpExecArray | null;
-  while ((result = reg.exec(text))) { // eslint-disable-line no-cond-assign
+  while ((result = reg.exec(text))) {
     keys.push(result[0]);
   }
 
