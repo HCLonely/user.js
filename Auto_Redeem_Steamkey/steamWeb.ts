@@ -1,7 +1,7 @@
 /*
  * @Author       : HCLonely
  * @Date         : 2025-04-23 21:52:47
- * @LastEditTime : 2025-07-15 16:45:32
+ * @LastEditTime : 2025-07-18 20:01:26
  * @LastEditors  : HCLonely
  * @FilePath     : /user.js/Auto_Redeem_Steamkey/steamWeb.ts
  * @Description  :
@@ -300,7 +300,7 @@ export function redeemSub(e?: string): void {
             window.open('https://store.steampowered.com/account/licenses/', '_self');
           } else {
             swal('全部激活完成，是否前往账户页面查看结果？', {
-            //@ts-ignore
+              //@ts-ignore
               buttons: {
                 cancel: '取消',
                 确定: true
@@ -395,6 +395,32 @@ function isValidCartConfig(cartConfig: CartConfig, userInfo: UserInfo): boolean 
   );
 }
 
+function bindCurrencyChangeOption(): void {
+  const checkElement = () => {
+    const $currencyChangeOptions = $('.currency_change_option');
+    if ($currencyChangeOptions.length > 0) {
+      $currencyChangeOptions.click(function () {
+        const newCountry = $(this).attr('data-country');
+        if (newCountry) {
+          changeCountry(newCountry);
+        }
+      });
+      return true;
+    }
+    return false;
+  };
+
+  const intervalId = setInterval(() => {
+    if (checkElement()) {
+      clearInterval(intervalId);
+    }
+  }, 500);
+
+  setTimeout(() => {
+    clearInterval(intervalId);
+  }, 10000);
+}
+
 function showCountryChangeDialog(cartConfig: CartConfig, userInfo: UserInfo, cartData: string): void {
   const divContent = cartData
     .match(/<div class="currency_change_options">([\w\W]*?)<p/i)?.[1]
@@ -403,22 +429,14 @@ function showCountryChangeDialog(cartConfig: CartConfig, userInfo: UserInfo, car
 
   showSwalMessage({
     closeOnClickOutside: false,
-    title: `当前国家/地区：${
-      cartConfig.rgUserCountryOptions[userInfo.country_code] ||
+    title: `当前国家/地区：${cartConfig.rgUserCountryOptions[userInfo.country_code] ||
       userInfo.country_code
-    }`,
+      }`,
     //@ts-ignore
     content: $(`<div>${div}</div>`)[0]
-  }).then(() => {
-    $('.currency_change_option').click(function () {
-      const country = $(this).attr('data-country');
-      if (country) {
-        changeCountry(country);
-      }
-    });
   });
+  bindCurrencyChangeOption();
 }
-
 export function changeCountry(country: string): void {
   showSwalMessage({
     closeOnClickOutside: false,
@@ -478,20 +496,13 @@ export function changeCountry(country: string): void {
             showSwalMessage({ title: '更换成功！', icon: 'success' }).then(() => {
               showSwalMessage({
                 closeOnClickOutside: false,
-                title: `当前国家/地区：${
-                  cartConfig?.rgUserCountryOptions[userInfo.country_code] ||
+                title: `当前国家/地区：${cartConfig?.rgUserCountryOptions[userInfo.country_code] ||
                   userInfo.country_code
-                }`,
+                  }`,
                 //@ts-ignore
                 content: $(`<div>${div}</div>`)[0]
-              }).then(() => {
-                $('.currency_change_option').click(function () {
-                  const newCountry = $(this).attr('data-country');
-                  if (newCountry) {
-                    changeCountry(newCountry);
-                  }
-                });
               });
+              bindCurrencyChangeOption();
             });
           } else {
             showSwalMessage({ title: '更换失败！', icon: 'error' });

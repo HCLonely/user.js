@@ -3,7 +3,7 @@
 // @namespace   HCLonely
 // @author      HCLonely
 // @description 复制网页中的Steamkey后自动激活，3.0+版本为Beta版
-// @version     3.4.0
+// @version     3.4.1
 // @supportURL  https://keylol.com/t344489-1-1
 // @homepage    https://blog.hclonely.com/posts/71381355/
 // @iconURL     https://blog.hclonely.com/img/avatar.jpg
@@ -1375,6 +1375,29 @@ function parseCartData(data) {
 function isValidCartConfig(cartConfig, userInfo) {
   return cartConfig && userInfo && Object.keys(cartConfig.rgUserCountryOptions).length > 2;
 }
+function bindCurrencyChangeOption() {
+  const checkElement = () => {
+    const $currencyChangeOptions = $(".currency_change_option");
+    if ($currencyChangeOptions.length > 0) {
+      $currencyChangeOptions.click(function() {
+        const newCountry = $(this).attr("data-country");
+        if (newCountry) {
+          changeCountry(newCountry);
+        }
+      });
+      return true;
+    }
+    return false;
+  };
+  const intervalId = setInterval(() => {
+    if (checkElement()) {
+      clearInterval(intervalId);
+    }
+  }, 500);
+  setTimeout(() => {
+    clearInterval(intervalId);
+  }, 1e4);
+}
 function showCountryChangeDialog(cartConfig, userInfo, cartData) {
   const divContent = cartData.match(/<div class="currency_change_options">([\w\W]*?)<p/i)?.[1]?.trim();
   const div = `${divContent || ""}</div>`;
@@ -1383,14 +1406,8 @@ function showCountryChangeDialog(cartConfig, userInfo, cartData) {
     title: `当前国家/地区：${cartConfig.rgUserCountryOptions[userInfo.country_code] || userInfo.country_code}`,
     //@ts-ignore
     content: $(`<div>${div}</div>`)[0]
-  }).then(() => {
-    $(".currency_change_option").click(function() {
-      const country = $(this).attr("data-country");
-      if (country) {
-        changeCountry(country);
-      }
-    });
   });
+  bindCurrencyChangeOption();
 }
 function changeCountry(country) {
   showSwalMessage({
@@ -1443,14 +1460,8 @@ function changeCountry(country) {
                 title: `当前国家/地区：${cartConfig?.rgUserCountryOptions[userInfo.country_code] || userInfo.country_code}`,
                 //@ts-ignore
                 content: $(`<div>${div}</div>`)[0]
-              }).then(() => {
-                $(".currency_change_option").click(function() {
-                  const newCountry = $(this).attr("data-country");
-                  if (newCountry) {
-                    changeCountry(newCountry);
-                  }
-                });
               });
+              bindCurrencyChangeOption();
             });
           } else {
             showSwalMessage({ title: "更换失败！", icon: "error" });
