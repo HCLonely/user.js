@@ -32,6 +32,7 @@
     "babel-loader": "^8.2.3",
     "esbuild": "^0.25.3",
     "eslint": "^8.7.0",
+    "standard": "^17.1.2",
     "sweetalert2": "^11.4.0",
     "terser-webpack-plugin": "^5.3.1",
     "ts-loader": "^9.2.6",
@@ -43,5 +44,16 @@
   },
   "dependencies": {
     "sweetalert": "^2.1.2"
+  },
+  "standard": {
+    "globals": [
+      "$",
+      "GM_addStyle",
+      "GM_getValue",
+      "GM_openInTab",
+      "GM_registerMenuCommand",
+      "GM_setValue",
+      "GM_xmlhttpRequest"
+    ]
   }
 }
