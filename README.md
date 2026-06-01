@@ -2,16 +2,6 @@
 
 闲着没事搞的一些 Tampermonkey 脚本
 
-## Alienwarearena Daily Quest Helper(不再维护)
-
-### 功能
-
-- 已弃用，请使用[AWA-Helper](https://github.com/HCLonely/AWA-Helper)
-
-## AuTo Redeem Steamkey
-
-> 一键激活网页内的 steam key, 详情：[https://blog.hclonely.com/posts/71381355/](https://blog.hclonely.com/posts/71381355/)
-
 ## Giveaway Left
 
 ### 功能
@@ -55,25 +45,11 @@
 - 在 steam 账户页面激活 SUB（支持改区）
 - 支持一键激活[https://steamdb.info/freepackages/](https://steamdb.info/freepackages/)页面的 SUB
 
-## Redeem itch.io
-
-### 功能
-
-- 检测 itch.io key 链接并激活
-- 自动激活价格为 0.00 的 itch.io 游戏
-- 提取当前页面的所有 itch 游戏链接并尝试激活（仅支持其乐社区）
-
 ## Steam link reshow
 
 ### 功能
 
 - 重新显示 steam 社区显示{链接已删除}的链接
-
-## Steam add to cart(不再维护)
-
-### 功能
-
-- 可以在 Steam 商店页面直接将游戏加入购物车，不会跳转到购物车页面
 
 ## Steam remove all
 
@@ -101,17 +77,17 @@
 
 - 使用 vscode 查看 github.
 
-## bilibili medal
+## Alienwarearena Daily Quest Helper(不再维护)
 
-### 功能
+- 已弃用，请使用[AWA-Helper](https://github.com/HCLonely/AWA-Helper)
 
-- 保持 bilibili 直播粉丝勋章常亮。
+## AuTo Redeem Steamkey(不再维护)
 
-### 使用方法
+- 已弃用，请使用[RedeemHelper](https://github.com/HCLonely/RedeemHelper)
 
-1. 登录[bilibili](https://www.bilibili.com/)
-2. 打开[佩戴中心](https://link.bilibili.com/p/center/index#/user-center/wearing-center/my-medal)
-3. 点击“佩戴中心”旁边的`开始签到`按钮
+## Redeem itch.io(不再维护)
+
+- 已弃用，请使用[RedeemHelper](https://github.com/HCLonely/RedeemHelper)
 
 ## require
 
