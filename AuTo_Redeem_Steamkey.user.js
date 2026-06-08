@@ -4,9 +4,11 @@
 // @author          HCLonely
 // @description     统一的游戏 Key 提取与领取辅助脚本，聚合了 Steam / IndieGala / itch.io。
 // @description:en  Unified helper for extracting and redeeming game keys.
-// @version         4.0.0
+// @version         4.0.3
 // @supportURL      https://github.com/HCLonely/RedeemHelper/issues
 // @homepageURL     https://github.com/HCLonely/RedeemHelper
+// @updateURL       https://github.com/HCLonely/RedeemHelper/blob/main/RedeemHelper.user.js?raw=true
+// @downloadURL     https://github.com/HCLonely/RedeemHelper/blob/main/RedeemHelper.user.js?raw=true
 // @icon            https://github.com/HCLonely/RedeemHelper/blob/main/icon.ico?raw=true
 // @tag             games
 
@@ -22,27 +24,104 @@
 // @grant           GM_xmlhttpRequest
 // @grant           GM_cookie
 // @run-at          document-idle
+// @connect         www.gog.com
+// @connect         www.indiegala.com
+// @connect         itch.io
+// @connect         store.steampowered.com
+// @connect         login.steampowered.com
 // @connect         *
 // ==/UserScript==
 "use strict";
 (() => {
-  // src/shared/dom.ts
-  function isHost(host) {
-    const hosts = Array.isArray(host) ? host : [host];
-    const currentHost = window.location.hostname;
-    return hosts.some((candidate) => currentHost === candidate || currentHost.endsWith(`.${candidate}`));
+  // src/shared/trusted-types.ts
+  if (typeof trustedTypes !== "undefined" && trustedTypes.createPolicy) {
+    const policy = trustedTypes.createPolicy("tampermonkey-fix", {
+      createHTML: (input) => input,
+      createScript: (input) => input,
+      createScriptURL: (input) => input
+    });
+    const origInnerHTML = Object.getOwnPropertyDescriptor(Element.prototype, "innerHTML");
+    Object.defineProperty(Element.prototype, "innerHTML", {
+      get: origInnerHTML.get,
+      set: function (val) {
+        if (typeof val === "string") {
+          origInnerHTML.set.call(this, policy.createHTML(val));
+        } else {
+          origInnerHTML.set.call(this, val);
+        }
+      },
+      configurable: true,
+      enumerable: true
+    });
+    const origOuterHTML = Object.getOwnPropertyDescriptor(Element.prototype, "outerHTML");
+    Object.defineProperty(Element.prototype, "outerHTML", {
+      get: origOuterHTML.get,
+      set: function (val) {
+        if (typeof val === "string") {
+          origOuterHTML.set.call(this, policy.createHTML(val));
+        } else {
+          origOuterHTML.set.call(this, val);
+        }
+      },
+      configurable: true,
+      enumerable: true
+    });
+    const origInsertAdjacentHTML = Element.prototype.insertAdjacentHTML;
+    Element.prototype.insertAdjacentHTML = function (position, text) {
+      origInsertAdjacentHTML.call(this, position, policy.createHTML(text));
+    };
+  }
+
+  // src/shared/http.ts
+  function request(options) {
+    return new Promise((resolve) => {
+      const finish = (response, error) => {
+        const status = response?.status ?? 0;
+        const statusText = response?.statusText ?? (error ? "Error" : "");
+        let responseData = response?.response;
+        if (options.responseType === "json") {
+          if (typeof responseData !== "object" && response?.responseText) {
+            try {
+              responseData = JSON.parse(response.responseText);
+            } catch (_e) {
+            }
+          }
+        }
+        resolve({
+          ok: status >= 200 && status < 300,
+          status,
+          statusText,
+          data: responseData,
+          text: response?.responseText,
+          response,
+          error
+        });
+      };
+      try {
+        GM_xmlhttpRequest({
+          timeout: 3e4,
+          ...options,
+          onload: (response) => finish(response),
+          onerror: (response) => finish(response, response),
+          ontimeout: (response) => finish(response, new Error("Request timed out")),
+          onabort: (response) => finish(response, new Error("Request aborted"))
+        });
+      } catch (error) {
+        finish(null, error);
+      }
+    });
   }
 
   // src/shared/observer.ts
   function mountObserver(callback) {
-    const observer3 = new MutationObserver(callback);
-    observer3.observe(document.body || document.documentElement, {
+    const observer4 = new MutationObserver(callback);
+    observer4.observe(document.body || document.documentElement, {
       childList: true,
       subtree: true,
       characterData: true
     });
     callback();
-    return observer3;
+    return observer4;
   }
 
   // src/shared/ui.ts
@@ -350,35 +429,104 @@
     void showModal(options);
   }
 
-  // src/shared/http.ts
-  function request(options) {
-    return new Promise((resolve) => {
-      const finish = (response, error) => {
-        const status = response?.status ?? 0;
-        const statusText = response?.statusText ?? (error ? "Error" : "");
-        resolve({
-          ok: status >= 200 && status < 300,
-          status,
-          statusText,
-          data: response?.response,
-          text: response?.responseText,
-          response,
-          error
-        });
-      };
-      try {
-        GM_xmlhttpRequest({
-          timeout: 3e4,
-          ...options,
-          onload: (response) => finish(response),
-          onerror: (response) => finish(response, response),
-          ontimeout: (response) => finish(response, new Error("Request timed out")),
-          onabort: (response) => finish(response, new Error("Request aborted"))
-        });
-      } catch (error) {
-        finish(null, error);
-      }
+  // src/modules/gog/index.ts
+  var GOG_BUTTON_CLASS = "gog-claim-button";
+  var GOG_PROCESSED_CLASS = "gog-claimed";
+  var GOG_CSS = `
+.rh-claim-button{
+  display:inline-flex;align-items:center;gap:0.25em;
+  padding:0.15em 0.7em;
+  background:linear-gradient(135deg,#22c55e 0%,#16a34a 100%);
+  color:#ffffff !important;
+  font-weight:600;font-size:0.85em;line-height:1.35;
+  border:none;border-radius:0.35em;
+  cursor:pointer;text-decoration:none !important;
+  box-shadow:0 1px 3px rgba(22,163,74,0.35);
+  transition:all 0.2s ease;
+  vertical-align:middle;
+  white-space:nowrap;
+  margin-left:0.5em;
+}
+.rh-claim-button:hover{
+  background:linear-gradient(135deg,#16a34a 0%,#15803d 100%);
+  box-shadow:0 2px 8px rgba(22,163,74,0.45);
+  transform:translateY(-1px);
+  color:#ffffff !important;text-decoration:none !important;
+}
+.rh-claim-button:active{
+  transform:translateY(0);
+  box-shadow:0 1px 2px rgba(22,163,74,0.2);
+}
+`;
+  var initialized = false;
+  var observer = null;
+  function isEligibleGOGLink(href) {
+    try {
+      const url = new URL(href);
+      return url.hostname === "www.gog.com" && url.pathname === "/giveaway/claim";
+    } catch {
+      return false;
+    }
+  }
+  function addButtons() {
+    for (const link of Array.from(document.querySelectorAll(`a[href*="gog.com/giveaway/claim"]:not(.${GOG_PROCESSED_CLASS})`))) {
+      link.classList.add(GOG_PROCESSED_CLASS);
+      const href = link.href;
+      if (!isEligibleGOGLink(href)) continue;
+      const button = document.createElement("a");
+      button.className = `rh-claim-button ${GOG_BUTTON_CLASS}`;
+      button.href = "javascript:void(0)";
+      button.target = "_self";
+      button.textContent = "领取";
+      button.addEventListener("click", (event) => {
+        event.preventDefault();
+        void claimGOGGiveaway("https://www.gog.com/giveaway/claim");
+      });
+      link.after(button);
+    }
+  }
+  async function claimGOGGiveaway(url) {
+    void showModal({
+      title: "正在领取GOG...",
+      text: "",
+      icon: "info"
     });
+    const response = await request({
+      url,
+      method: "POST",
+      data: "{}",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      responseType: "json"
+    });
+    if (response.status === 201 || response.status === 409 && response.data?.message === "Already claimed") {
+      updateOrShowModal({
+        title: "领取成功！",
+        text: "",
+        icon: "success"
+      });
+      return true;
+    }
+    updateOrShowModal({
+      title: "领取失败！",
+      text: response.data?.message || `状态码: ${response.status}`,
+      icon: "error"
+    });
+    return false;
+  }
+  function initGOG() {
+    if (initialized) return;
+    initialized = true;
+    GM_addStyle(GOG_CSS);
+    observer = mountObserver(addButtons);
+  }
+
+  // src/shared/dom.ts
+  function isHost(host) {
+    const hosts = Array.isArray(host) ? host : [host];
+    const currentHost = window.location.hostname;
+    return hosts.some((candidate) => currentHost === candidate || currentHost.endsWith(`.${candidate}`));
   }
 
   // src/modules/ig/addToLib.ts
@@ -517,8 +665,8 @@
   var IG_BUTTON_CLASS = "add-to-library";
   var IG_PROCESSED_CLASS = "ig-add2lib";
   var IG_CSS = `.${IG_BUTTON_CLASS}{margin-left:10px;}`;
-  var initialized = false;
-  var observer = null;
+  var initialized2 = false;
+  var observer2 = null;
   function isEligibleIndieGalaLink(href) {
     try {
       const url = new URL(href);
@@ -527,7 +675,7 @@
       return false;
     }
   }
-  function addButtons() {
+  function addButtons2() {
     for (const link of Array.from(document.querySelectorAll(`a[href*=".indiegala.com/"]:not(.${IG_PROCESSED_CLASS})`))) {
       link.classList.add(IG_PROCESSED_CLASS);
       const href = link.href;
@@ -550,14 +698,14 @@
     return [...new Set(links)];
   }
   function initIG() {
-    if (initialized || isHost("indiegala.com")) return;
-    initialized = true;
+    if (initialized2 || isHost("indiegala.com")) return;
+    initialized2 = true;
     GM_addStyle(IG_CSS);
-    observer = mountObserver(addButtons);
+    observer2 = mountObserver(addButtons2);
   }
   async function runIGBatch() {
     if (isHost("indiegala.com")) return;
-    addButtons();
+    addButtons2();
     const links = collectBatchLinks();
     const failedLinks = [];
     for (const link of links) {
@@ -602,6 +750,9 @@
     },
     itch: {
       autoClose: true
+    },
+    gog: {
+      enableButtons: true
     }
   };
   function mergeSettings(settings = {}, base = defaultSettings) {
@@ -617,6 +768,10 @@
       itch: {
         ...base.itch,
         ...settings.itch
+      },
+      gog: {
+        ...base.gog,
+        ...settings.gog
       }
     };
   }
@@ -956,7 +1111,6 @@ ${details}` : message);
 
   // src/modules/itch/index.ts
   var ITCH_PROCESSED_CLASS = "redeem-itch-game";
-  var ITCH_BUTTON_CLASS = "redeem-itch-button";
   var EXTERNAL_HOSTS = [
     "keylol.com",
     "www.steamgifts.com",
@@ -968,12 +1122,35 @@ ${details}` : message);
   ];
   var ITCH_CSS = `
 .rh-modal.break-all .rh-modal-title{word-wrap:break-word;word-break:break-all;}
-.${ITCH_BUTTON_CLASS}{margin-left:10px !important;}
-.freegames-codes .${ITCH_BUTTON_CLASS}{margin-top:10px !important;margin-left:0 !important;}
+.rh-claim-button{
+  display:inline-flex;align-items:center;gap:0.25em;
+  padding:0.15em 0.7em;
+  background:linear-gradient(135deg,#22c55e 0%,#16a34a 100%);
+  color:#ffffff !important;
+  font-weight:600;font-size:0.85em;line-height:1.35;
+  border:none;border-radius:0.35em;
+  cursor:pointer;text-decoration:none !important;
+  box-shadow:0 1px 3px rgba(22,163,74,0.35);
+  transition:all 0.2s ease;
+  vertical-align:middle;
+  white-space:nowrap;
+  margin-left:0.5em;
+}
+.rh-claim-button:hover{
+  background:linear-gradient(135deg,#16a34a 0%,#15803d 100%);
+  box-shadow:0 2px 8px rgba(22,163,74,0.45);
+  transform:translateY(-1px);
+  color:#ffffff !important;text-decoration:none !important;
+}
+.rh-claim-button:active{
+  transform:translateY(0);
+  box-shadow:0 1px 2px rgba(22,163,74,0.2);
+}
+.freegames-codes .rh-claim-button{margin-top:0.5em !important;margin-left:0 !important;}
 .shaigrorb-itch-button{position:relative;height:min-content;right:39px;background-color:#16a34a;top:4px;text-decoration-line:none;color:white;font-weight:bold;border-radius:2px;padding:5px;font-size:13px;}
 `;
-  var initialized2 = false;
-  var observer2 = null;
+  var initialized3 = false;
+  var observer3 = null;
   function isDownloadPage(url) {
     return /^https?:\/\/.+\.itch\.io\/[\w-]+\/download(?:\/.*|\?.*)?$/i.test(url);
   }
@@ -1002,11 +1179,11 @@ ${details}` : message);
       void redeemItchGame(href);
     });
     if (window.location.hostname === "freegames.codes") {
-      button.className = `details__buy ${ITCH_BUTTON_CLASS}`;
+      button.className = "details__buy rh-claim-button";
     } else if (window.location.hostname === "shaigrorb.github.io") {
-      button.className = `shaigrorb-itch-button ${ITCH_BUTTON_CLASS}`;
+      button.className = "shaigrorb-itch-button rh-claim-button";
     } else {
-      button.className = ITCH_BUTTON_CLASS;
+      button.className = "rh-claim-button";
     }
     return button;
   }
@@ -1062,8 +1239,8 @@ ${details}` : message);
     }
   }
   function initItch() {
-    if (initialized2) return;
-    initialized2 = true;
+    if (initialized3) return;
+    initialized3 = true;
     GM_addStyle(ITCH_CSS);
     if (isHost("itch.io")) {
       initItchHostPage();
@@ -1071,7 +1248,7 @@ ${details}` : message);
     }
     if (!isHost(EXTERNAL_HOSTS)) return;
     document.documentElement.classList.toggle("freegames-codes", window.location.hostname === "freegames.codes");
-    observer2 = mountObserver(addExternalRedeemButtons);
+    observer3 = mountObserver(addExternalRedeemButtons);
   }
   async function runItchExtract() {
     await extractAndRedeemItchLinks();
@@ -2551,10 +2728,10 @@ table.hclonely .rh-modal-button { padding: 5px; }
 .icon-img { position: absolute; width: 32px; height: 32px; margin: 0!important; }
 .icon-div { width: 32px!important; height: 32px!important; display: none; background: #fff!important; border-radius: 16px!important; box-shadow: 4px 4px 8px #888!important; position: absolute!important; z-index: 2147483647!important; cursor: pointer; }
 `;
-  var initialized3 = false;
+  var initialized4 = false;
   function initSteam() {
-    if (initialized3) return;
-    initialized3 = true;
+    if (initialized4) return;
+    initialized4 = true;
     try {
       GM_addStyle(STEAM_CSS);
       const url = window.location.href;
@@ -2671,6 +2848,9 @@ table.hclonely .rh-modal-button { padding: 5px; }
     if (handlers.onItchExtract) {
       GM_registerMenuCommand("入库所有ItchIo链接", wrapMenuHandler(handlers.onItchExtract));
     }
+    if (handlers.onGOGBatch) {
+      GM_registerMenuCommand("领取所有GOG链接", wrapMenuHandler(handlers.onGOGBatch));
+    }
   }
 
   // src/main.ts
@@ -2678,11 +2858,13 @@ table.hclonely .rh-modal-button { padding: 5px; }
     initSteam();
     initIG();
     initItch();
+    initGOG();
     registerMenus({
       onOpenSettings: openSteamSettings,
       onSteamASF: runSteamASF,
       onIGBatch: runIGBatch,
       onItchExtract: runItchExtract
+      // onGOGBatch: runGOGBatch,
     });
   }
   bootstrap();
