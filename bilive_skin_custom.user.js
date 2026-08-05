@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         bilibili直播自定义皮肤背景
 // @namespace    http://tampermonkey.net/
-// @version      2.1.5
+// @version      2.1.6
 // @description  自定义bilibili直播的皮肤和背景，仅自己可见！
 // @author       HCLonely
 // @include      /^https?:\/\/live.bilibili.com\/(blanc\/)?[\d]+/
@@ -39,7 +39,8 @@
       clearInterval(init)
       // const iconLocation = ($('.control-panel-icon-row .icon-item').length + 1) * 23
       $('#skin-css').remove()
-      $('.icon-left-part').after(`<span id="skin-setting-icon" class="icon-item danmu-block-icon live-skin-main-text skin-custom"><svg t="1626699361302" class="skin-custom icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1333" width="22" height="22"><title class="skin-custom">自定义皮肤</title><path d="M940.672 267.904l-138.304-150.272a89.216 89.216 0 0 0-65.92-29.632h-34.88c-31.36 0-59.52 16.512-77.248 45.376-23.168 36.992-65.6 59.072-113.664 59.072-45.888 0-88.96-22.144-112.896-57.92a84.736 84.736 0 0 0-75.328-46.528h-30.208c-29.568 0-52.992 10.176-69.76 30.208L83.2 268.16l-0.128 0.128A98.24 98.24 0 0 0 56.96 334.976a94.08 94.08 0 0 0 26.304 66.048l80.768 87.68c16.128 17.536 39.424 27.968 62.208 27.968h2.432v347.008c0 39.936 31.232 72.384 69.504 72.384h427.52c38.336 0 69.504-32.448 69.504-72.384V516.672h2.496c23.424 0 45.504-9.984 62.144-28.032l81.088-88c16.768-18.176 26.048-41.984 25.984-66.688a94.08 94.08 0 0 0-26.304-66.048z m-52.672 83.904l-81.024 88.064c-4.416 4.8-8 4.8-9.216 4.8a14.784 14.784 0 0 1-9.216-4.8 36.992 36.992 0 0 0-26.88-11.648 38.464 38.464 0 0 0-38.4 38.592V864H300.8V466.816c0-21.248-17.152-38.464-38.4-38.592a37.056 37.056 0 0 0-26.88 11.712 14.848 14.848 0 0 1-9.216 4.736 14.912 14.912 0 0 1-9.216-4.8L136 351.872l-0.832-0.832c-8.512-8.704-8.128-24.192 0.768-33.92l139.776-150.272 1.152-1.28 1.024-1.28c1.28-1.6 3.968-4.224 14.336-4.224h30.208a12.672 12.672 0 0 1 11.2 7.36 36.928 36.928 0 0 0 2.432 4.416l0.128 0.128A200.32 200.32 0 0 0 408.96 238.848a213.44 213.44 0 0 0 101.632 25.6c35.84 0 70.976-8.576 101.44-24.96a194.432 194.432 0 0 0 73.344-68.096l0.128-0.256c6.848-11.136 13.76-11.136 16-11.136h34.944a17.024 17.024 0 0 1 12.48 6.016l139.008 151.04 0.768 0.768c8.576 8.704 8.256 24.32-0.768 33.984zM398.016 443.008h120c5.312 0 8 2.688 8 8v153.984c0 5.312-2.688 8-8 8H398.016c-5.376 0-8-2.688-8-8V451.008c0-5.312 2.624-8 8-8z" p-id="1334"></path></svg></span>`)
+      const skinHtml = `<div data-v-1f05a10d="" class="skin-custom-btn"><div data-v-edc440c6="" data-v-1f05a10d="" id="skin-setting-icon" class="danmu-block-icon live-skin-main-text skin-custom"><svg width="22" height="22" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><title class="skin-custom">自定义皮肤</title><path d="M37 22V37M11 37V44H37V37M11 37H4V22C4 19 6 15.5 9 13C12 10.5 16 10 16 10L24 18M11 37V22M37 37H44V22C44 19 42 15.5 39 13C36 10.5 32 10 32 10L24 18M24 18V27" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 13C12 10.5 16 10 16 10L24 18L32 10C32 10 36 10.5 39 13L41 8.5L39 4H9L7 8.5L9 13Z" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>`
+      $('.icon-left-part').append(skinHtml)
 
       $('#skin-setting-icon').click(() => {
         if ($('#skin-setting-div').length > 0) {
@@ -77,8 +78,7 @@
           $('#skin-setting-div').show('normal')
           const container = $('#skin-container')
           const inner = $('#skin-selected')
-          console.log(container, inner)
-          container.scrollTop(inner.offset().top - container.offset().top + container.scrollTop())
+          container.scrollTop(inner.offset().top - container.offset().top + $('#skin-setting-div').offset().top - container.offset().top)
           $("input.background-custom").bind('input porpertychange', function () {
             if ($(this).val().length > 0) {
               $('button.change-bgimg').removeAttr('disabled')
@@ -435,6 +435,13 @@
     $('head').append(`<style id="custom-skin">${skinCss}</style>`)
   }
   const style = `
+  .skin-custom-btn {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    margin-left: 4px;
+  }
   .dialog-ctnr.skin-custom {
     bottom: 100%;
     padding: 16px;
@@ -534,14 +541,6 @@
   }
   .block-effect-ctnr .item label.skin-custom {
     margin: 0 0 0 2px;
-  }
-  #skin-setting-icon {
-    display: inline-block;
-    width: 24px;
-    height: 24px;
-    margin-left: 4px;
-    margin-top: 4px;
-    fill: rgb(201, 204, 208) !important;
   }
   `
   GM_addStyle(style)
